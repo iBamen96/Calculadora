@@ -1,0 +1,2700 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora iBamen</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0a0a08;--surface:#111110;--surface2:#1a1a18;--surface3:#222220;
+  --border:#2a2a26;--accent:#c9a84c;--accent2:#e8c97a;
+  --text:#f0ede6;--text-muted:#7a7a72;--text-dim:#4a4a44;
+  --green:#5a9e7a;--red:#c05050;--usd:#7ab8a0;
+}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-weight:300;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:1000;opacity:0.4;}
+.container{max-width:980px;margin:0 auto;padding:0 24px 100px;}
+
+/* HEADER */
+header{padding:56px 0 36px;border-bottom:1px solid var(--border);margin-bottom:32px;position:relative;}
+.header-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.3em;color:var(--accent);text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:12px;}
+.header-label::before{content:'';display:block;width:24px;height:1px;background:var(--accent);}
+h1{font-family:'Playfair Display',serif;font-size:clamp(26px,4vw,46px);font-weight:700;line-height:1.1;letter-spacing:-.02em;}
+h1 em{font-style:italic;color:var(--accent);}
+.header-sub{margin-top:8px;color:var(--text-muted);font-size:13px;}
+.currency-toggle{position:absolute;top:56px;right:0;display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:4px;overflow:hidden;}
+.currency-btn{padding:7px 15px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.15em;cursor:pointer;border:none;background:transparent;color:var(--text-muted);transition:all .2s;}
+.currency-btn.active{background:var(--accent);color:var(--bg);font-weight:500;}
+.rate-info{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);display:flex;align-items:center;gap:8px;margin-top:4px;}
+.rate-input{background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text-muted);font-family:'DM Mono',monospace;font-size:10px;width:60px;padding:0 2px;outline:none;}
+
+/* TABS */
+.steps-nav{display:flex;gap:0;margin-bottom:32px;border-bottom:1px solid var(--border);overflow-x:auto;}
+.step-tab{padding:11px 18px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;display:flex;align-items:center;gap:8px;white-space:nowrap;}
+.step-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.step-tab .snum{width:17px;height:17px;border-radius:50%;border:1px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:9px;}
+.step-panel{display:none;}
+.step-panel.active{display:block;}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:1fr 294px;gap:24px;align-items:start;}
+@media(max-width:740px){.layout{grid-template-columns:1fr;}.currency-toggle{position:static;margin-top:12px;}}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:24px;margin-bottom:16px;}
+.card-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:400;margin-bottom:20px;color:var(--text);}
+
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group.full{grid-column:1/-1;}
+.form-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--text-muted);text-transform:uppercase;}
+input[type="text"],input[type="number"],textarea,select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:2px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 10px;outline:none;transition:border-color .2s;-webkit-appearance:none;}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);}
+select option{background:var(--surface);}
+textarea{resize:vertical;min-height:78px;line-height:1.5;}
+
+/* LOGO UPLOAD */
+.logo-upload-area{border:1px dashed var(--border);border-radius:2px;padding:18px;text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:16px;position:relative;}
+.logo-upload-area:hover{border-color:var(--accent);}
+.logo-upload-area input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.logo-preview{max-width:110px;max-height:55px;object-fit:contain;display:none;margin:0 auto 8px;}
+.logo-upload-text{font-size:11px;color:var(--text-dim);}
+
+/* ── PANEL FINANCIERO PRIVADO ── */
+.finance-panel{background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:24px;margin-bottom:24px;}
+.finance-title{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;}
+.finance-subtitle{font-size:12px;color:var(--text-muted);margin-bottom:20px;line-height:1.5;}
+.finance-inputs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+.finance-result{background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.fin-stat{display:flex;flex-direction:column;gap:4px;}
+.fin-stat-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim);}
+.fin-stat-value{font-family:'DM Mono',monospace;font-size:14px;color:var(--text);}
+.fin-stat-value.accent{color:var(--accent);}
+.fin-stat-value.green{color:var(--green);}
+.fin-stat-value.red{color:var(--red);}
+
+/* HEALTH BAR */
+.health-bar-wrap{margin-top:16px;}
+.health-bar-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;display:flex;justify-content:space-between;}
+.health-bar-track{height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+.health-bar-fill{height:100%;border-radius:3px;transition:width .5s ease,background .3s;}
+
+/* MONTHLY TRACKER */
+.tracker-section{margin-top:20px;border-top:1px solid var(--border);padding-top:16px;}
+.tracker-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;}
+.tracker-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);gap:10px;font-size:12px;}
+.tracker-empty{font-size:11px;color:var(--text-dim);font-style:italic;padding:8px 0;}
+.tracker-del{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:14px;padding:0 4px;}
+.tracker-del:hover{color:var(--red);}
+.tracker-add-btn{width:100%;margin-top:10px;padding:9px;background:transparent;border:1px dashed var(--border);border-radius:2px;color:var(--text-muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+.tracker-add-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* SERVICE CARDS */
+.section{margin-bottom:32px;}
+.section-header{display:flex;align-items:center;gap:14px;margin-bottom:16px;}
+.section-num{font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:.2em;min-width:28px;}
+.section-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:400;}
+.section-line{flex:1;height:1px;background:var(--border);}
+.service-card{background:var(--surface);border:1px solid var(--border);border-radius:2px;margin-bottom:10px;overflow:hidden;transition:border-color .2s;}
+.service-card.active{border-color:var(--accent);}
+.service-header{display:flex;align-items:center;padding:15px 18px;cursor:pointer;gap:14px;user-select:none;}
+.service-check{width:17px;height:17px;border:1px solid var(--border);border-radius:2px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
+.service-card.active .service-check{background:var(--accent);border-color:var(--accent);}
+.service-check svg{opacity:0;transition:opacity .2s;}
+.service-card.active .service-check svg{opacity:1;}
+.service-info{flex:1;}
+.service-name{font-size:13px;font-weight:500;margin-bottom:2px;}
+.service-desc{font-size:11px;color:var(--text-muted);font-weight:300;}
+.service-base-price{font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim);text-align:right;}
+.service-base-price span{color:var(--accent);font-size:12px;}
+.service-options{display:none;padding:0 18px 18px;border-top:1px solid var(--border);background:var(--surface2);}
+.service-card.active .service-options{display:block;}
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+.option-group{display:flex;flex-direction:column;gap:5px;}
+.option-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--text-muted);text-transform:uppercase;}
+
+/* PACKAGE PILLS */
+.pack-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;}
+.pack-pill{border:1px solid var(--border);border-radius:2px;padding:10px 8px;cursor:pointer;transition:all .15s;text-align:center;}
+.pack-pill:hover{border-color:var(--accent);}
+.pack-pill.selected{border-color:var(--accent);background:rgba(201,168,76,.07);}
+.pack-pill-name{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:4px;}
+.pack-pill-price{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px;}
+.pack-pill-desc{font-size:10px;color:var(--text-muted);line-height:1.4;}
+
+/* INCLUDES LIST */
+.includes-list{margin-top:12px;display:flex;flex-direction:column;gap:4px;}
+.inc-item{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-muted);}
+.inc-dot{width:4px;height:4px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+
+/* ADDONS */
+.addon-list{margin-top:14px;display:flex;flex-direction:column;gap:6px;}
+.addon-item{display:flex;align-items:center;gap:10px;cursor:pointer;padding:7px 10px;border:1px solid transparent;border-radius:2px;transition:all .15s;}
+.addon-item:hover{border-color:var(--border);}
+.addon-item.selected{border-color:var(--accent);background:rgba(201,168,76,.05);}
+.addon-check{width:14px;height:14px;border:1px solid var(--border);border-radius:2px;flex-shrink:0;transition:all .15s;display:flex;align-items:center;justify-content:center;}
+.addon-item.selected .addon-check{background:var(--accent);border-color:var(--accent);}
+.addon-dot{width:6px;height:6px;background:var(--bg);border-radius:50%;opacity:0;transition:opacity .15s;}
+.addon-item.selected .addon-dot{opacity:1;}
+.addon-name{flex:1;font-size:12px;}
+.addon-price{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);}
+.service-note{margin-top:12px;font-size:11px;color:var(--text-dim);font-style:italic;line-height:1.6;padding:9px;border-left:2px solid var(--border);}
+.tag{display:inline-block;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;padding:2px 6px;border-radius:2px;margin-left:8px;vertical-align:middle;}
+.tag-new{background:rgba(201,168,76,.15);color:var(--accent);}
+.tag-pop{background:rgba(90,170,150,.15);color:var(--green);}
+
+/* SUMMARY */
+.summary-card{background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:22px;position:sticky;top:20px;}
+.summary-empty{text-align:center;padding:24px 0;color:var(--text-dim);font-size:12px;}
+.summary-line{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);gap:10px;}
+.summary-service-name{font-size:12px;color:var(--text);flex:1;line-height:1.4;}
+.summary-service-name small{display:block;color:var(--text-muted);font-size:10px;margin-top:1px;}
+.summary-price{font-family:'DM Mono',monospace;font-size:12px;color:var(--text);white-space:nowrap;}
+.summary-total-section{margin-top:16px;padding-top:16px;border-top:1px solid var(--accent);}
+.summary-total-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--text-muted);text-transform:uppercase;margin-bottom:5px;}
+.summary-total-amount{font-family:'Playfair Display',serif;font-size:26px;color:var(--accent);line-height:1;}
+.summary-total-sub{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-muted);margin-top:3px;}
+.total-in-other{font-family:'DM Mono',monospace;font-size:11px;color:var(--usd);margin-top:3px;}
+.discount-row{display:flex;align-items:center;gap:10px;margin-top:12px;padding:9px;background:rgba(201,168,76,.06);border:1px dashed rgba(201,168,76,.3);border-radius:2px;}
+.discount-label{font-size:11px;color:var(--text-muted);flex:1;}
+.discount-badge{font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);background:rgba(201,168,76,.1);padding:3px 8px;border-radius:2px;}
+
+/* VIABILITY ALERT in summary */
+.viability-alert{margin-top:12px;padding:10px;border-radius:2px;font-size:11px;line-height:1.5;}
+.viability-alert.good{background:rgba(90,158,122,.1);border:1px solid rgba(90,158,122,.3);color:var(--green);}
+.viability-alert.warn{background:rgba(192,80,80,.1);border:1px solid rgba(192,80,80,.3);color:var(--red);}
+.viability-alert.neutral{background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);}
+
+.btn-pdf{width:100%;margin-top:16px;padding:13px;background:var(--accent);color:var(--bg);border:none;border-radius:2px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:background .2s,transform .1s;}
+.btn-pdf:hover{background:var(--accent2);}
+.btn-pdf:active{transform:scale(.99);}
+.btn-sec{width:100%;margin-top:8px;padding:10px;background:transparent;color:var(--text-muted);border:1px solid var(--border);border-radius:2px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+.btn-sec:hover{border-color:var(--accent);color:var(--accent);}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:2000;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:#fff;border-radius:4px;width:100%;max-width:700px;max-height:92vh;overflow-y:auto;position:relative;}
+.modal-close{position:sticky;top:0;right:0;float:right;background:#fff;border:none;font-size:20px;padding:12px 16px;cursor:pointer;color:#333;z-index:10;}
+
+/* PDF */
+.pdf-doc{background:#fff;color:#1a1a1a;font-family:'DM Sans',sans-serif;padding:48px;line-height:1.5;}
+.pdf-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1a1a1a;padding-bottom:22px;margin-bottom:26px;}
+.pdf-logo-img{max-width:100px;max-height:50px;object-fit:contain;}
+.pdf-my-name{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;}
+.pdf-my-tagline{font-size:11px;color:#666;letter-spacing:.05em;}
+.pdf-my-contact{font-family:'DM Mono',monospace;font-size:10px;color:#666;margin-top:4px;line-height:1.6;}
+.pdf-meta{text-align:right;}
+.pdf-quote-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:#999;margin-bottom:4px;}
+.pdf-quote-num{font-family:'Playfair Display',serif;font-size:22px;color:#c9a84c;}
+.pdf-date{font-family:'DM Mono',monospace;font-size:10px;color:#999;margin-top:4px;}
+.pdf-client-section{background:#f7f5f0;border-left:3px solid #c9a84c;padding:14px 18px;margin-bottom:26px;border-radius:0 2px 2px 0;}
+.pdf-client-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:#999;margin-bottom:6px;}
+.pdf-client-name{font-size:16px;font-weight:500;}
+.pdf-client-detail{font-size:12px;color:#555;margin-top:2px;}
+.pdf-client-notes{font-size:12px;color:#555;margin-top:8px;font-style:italic;border-top:1px solid #e0ddd6;padding-top:8px;}
+.pdf-services-title{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:#999;margin-bottom:10px;}
+.pdf-service-row{display:flex;justify-content:space-between;align-items:flex-start;padding:12px 0;border-bottom:1px solid #eee;gap:12px;}
+.pdf-service-info{flex:1;}
+.pdf-service-name{font-size:13px;font-weight:500;}
+.pdf-service-detail{font-size:11px;color:#888;margin-top:2px;}
+.pdf-service-includes{margin-top:4px;}
+.pdf-service-includes span{display:inline-block;font-size:9px;color:#aaa;background:#f5f4f0;border-radius:2px;padding:1px 6px;margin:2px 2px 0 0;}
+.pdf-service-addons{font-size:10px;color:#aaa;margin-top:3px;}
+.pdf-service-price{font-family:'DM Mono',monospace;font-size:13px;text-align:right;white-space:nowrap;}
+.pdf-totals{margin-top:18px;display:flex;flex-direction:column;align-items:flex-end;gap:5px;}
+.pdf-subtotal-row{display:flex;gap:24px;font-size:12px;color:#666;}
+.pdf-discount-row{display:flex;gap:24px;font-size:12px;color:#c9a84c;}
+.pdf-total-row{display:flex;gap:24px;align-items:center;padding-top:12px;border-top:2px solid #1a1a1a;margin-top:6px;}
+.pdf-total-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#666;}
+.pdf-total-amount{font-family:'Playfair Display',serif;font-size:26px;color:#c9a84c;}
+.pdf-total-equiv{font-family:'DM Mono',monospace;font-size:10px;color:#aaa;}
+.pdf-validity{display:inline-block;background:#f7f5f0;border:1px solid #e0ddd6;border-radius:2px;padding:7px 13px;font-family:'DM Mono',monospace;font-size:10px;color:#888;margin-top:12px;}
+.pdf-footer{margin-top:32px;padding-top:18px;border-top:1px solid #eee;}
+.pdf-terms{font-size:10px;color:#aaa;line-height:1.8;}
+.pdf-terms strong{color:#666;}
+.pdf-footer-brand{margin-top:18px;text-align:center;font-family:'DM Mono',monospace;font-size:9px;color:#ccc;letter-spacing:.2em;}
+.pdf-anticipo{display:inline-block;background:#fff8ec;border:1px solid #f0d888;border-radius:2px;padding:8px 14px;font-size:11px;color:#997700;margin-top:10px;}
+.btn-dl-pdf{display:block;width:calc(100% - 96px);margin:20px auto;padding:14px;background:#c9a84c;color:#fff;border:none;border-radius:2px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;text-align:center;}
+.btn-dl-pdf:hover{background:#b89440;}
+
+.qty-btn{width:30px;height:30px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;color:var(--text);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s;flex-shrink:0;line-height:1;}
+.qty-btn:hover{border-color:var(--accent);color:var(--accent);}
+.qty-num{font-family:'DM Mono',monospace;font-size:16px;color:var(--text);min-width:24px;text-align:center;}
+@media(max-width:600px){.options-grid,.form-grid,.finance-inputs,.pack-grid{grid-template-columns:1fr;}.finance-result{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<header>
+  <div class="header-label">iBamen · Realizador Audiovisual · Bogotá, Colombia</div>
+  <h1>Calculadora<br><em>iBamen</em></h1>
+  <p class="header-sub">Tu herramienta privada para cotizar con confianza.</p>
+  <div class="currency-toggle">
+    <button class="currency-btn active" onclick="setCurrency('COP')">COP</button>
+    <button class="currency-btn" onclick="setCurrency('USD')">USD</button>
+  </div>
+</header>
+<div class="rate-info">
+  TRM de referencia: 1 USD = <input class="rate-input" type="number" id="trm" value="4100" onchange="updateAll()"> COP
+</div>
+
+<!-- TABS -->
+<div class="steps-nav" style="margin-top:26px;">
+  <div class="step-tab active" onclick="goStep(0)" id="tab0"><span class="snum">⚙</span> Mis Finanzas</div>
+  <div class="step-tab" onclick="goStep(1)" id="tab1"><span class="snum">1</span> Mi Perfil</div>
+  <div class="step-tab" onclick="goStep(2)" id="tab2"><span class="snum">2</span> Cliente</div>
+  <div class="step-tab" onclick="goStep(3)" id="tab3"><span class="snum">3</span> Servicios</div>
+  <div class="step-tab" onclick="goStep(4)" id="tab4"><span class="snum">4</span> Facturar</div>
+  <div class="step-tab" onclick="goStep(5)" id="tab5"><span class="snum">5</span> Historial</div>
+</div>
+
+<!-- ══ PANEL 0: MIS FINANZAS (PRIVADO) ══ -->
+<div class="step-panel active" id="panel0">
+  <div class="finance-panel">
+    <div class="finance-title">🔒 Panel Privado — Solo tú lo ves</div>
+    <div class="finance-subtitle">Cuadro financiero real del hogar. Estos datos calculan cuánto necesitas generar con tu negocio para vivir bien. El cliente nunca ve esta sección.</div>
+
+    <!-- HOGAR -->
+    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;">Ingresos del hogar</div>
+    <div class="finance-inputs">
+      <div class="form-group">
+        <label class="form-label">Tu contrato fijo / edición (COP)</label>
+        <input type="number" id="fin-fijo" value="1300000" oninput="updateFinance()">
+        <span style="font-size:10px;color:var(--text-dim);margin-top:3px;">Edición de video por contrato</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ingresos esposa (COP)</label>
+        <input type="number" id="fin-esposa" value="3200000" oninput="updateFinance()">
+        <span style="font-size:10px;color:var(--text-dim);margin-top:3px;">Ingreso fijo mensual</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Gastos totales del hogar (COP)</label>
+        <input type="number" id="fin-hogar" value="5000000" oninput="updateFinance()">
+        <span style="font-size:10px;color:var(--text-dim);margin-top:3px;">Arriendo, mercado, colegio, servicios...</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Meta de aporte tuyo al hogar (COP)</label>
+        <input type="number" id="fin-meta" value="3500000" oninput="updateFinance()">
+        <span style="font-size:10px;color:var(--text-dim);margin-top:3px;">Caprichos + ahorros + viajes</span>
+      </div>
+    </div>
+
+    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;margin-top:18px;">Negocio</div>
+    <div class="finance-inputs">
+      <div class="form-group">
+        <label class="form-label">Gastos operativos negocio/mes (COP)</label>
+        <input type="number" id="fin-gastos" value="1000000" oninput="updateFinance()">
+        <span style="font-size:10px;color:var(--text-dim);margin-top:3px;">Software, equipos, transporte, seguros</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ahorro / inversión negocio/mes (COP)</label>
+        <input type="number" id="fin-ahorro" value="350000" oninput="updateFinance()">
+        <span style="font-size:10px;color:var(--text-dim);margin-top:3px;">Para equipos o fondo de emergencia</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Días productivos disponibles/mes</label>
+        <input type="number" id="fin-dias" value="12" min="1" max="25" oninput="updateFinance()">
+        <span style="font-size:10px;color:var(--text-dim);margin-top:3px;">Sin contar edición, reuniones ni admin</span>
+      </div>
+    </div>
+
+    <!-- RESUMEN CALCULADO -->
+    <div style="background:var(--surface3);border:1px solid var(--border);border-radius:2px;padding:16px;margin-top:4px;">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim);margin-bottom:12px;">Diagnóstico del hogar</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div class="fin-stat"><span class="fin-stat-label">Total fijo hogar</span><span class="fin-stat-value" id="fin-total-fijo">$4.500.000</span></div>
+        <div class="fin-stat"><span class="fin-stat-label">Déficit / superávit base</span><span class="fin-stat-value" id="fin-deficit">$500.000</span></div>
+      </div>
+      <div style="height:1px;background:var(--border);margin-bottom:14px;"></div>
+      <div class="finance-result">
+        <div class="fin-stat"><span class="fin-stat-label">Meta freelance real</span><span class="fin-stat-value accent" id="fin-necesito">$3.050.000</span></div>
+        <div class="fin-stat"><span class="fin-stat-label">Tarifa mínima/día</span><span class="fin-stat-value" id="fin-dia">$254.000</span></div>
+        <div class="fin-stat"><span class="fin-stat-label">Tarifa recomendada/día</span><span class="fin-stat-value green" id="fin-dia-rec">$635.000</span></div>
+      </div>
+      <div style="margin-top:12px;font-size:11px;color:var(--text-dim);font-style:italic;line-height:1.6;padding:9px;border-left:2px solid var(--accent);" id="fin-consejo">
+        Con 2 proyectos medianos al mes ya cubres tu meta. No necesitas llenarte de clientes — necesitas los correctos.
+      </div>
+    </div>
+
+    <div class="health-bar-wrap" style="margin-top:20px;">
+      <div class="health-bar-label">
+        <span>Progreso del mes — proyectos cerrados</span>
+        <span id="health-pct">0%</span>
+      </div>
+      <div class="health-bar-track">
+        <div class="health-bar-fill" id="health-bar" style="width:0%;background:var(--red);"></div>
+      </div>
+    </div>
+
+    <!-- INGRESOS ADICIONALES INESPERADOS -->
+    <div class="tracker-section">
+      <div class="tracker-label" style="margin-bottom:6px;">
+        Ingresos adicionales del mes
+        <span id="extras-total" style="color:var(--usd);margin-left:8px;">$0</span>
+        <span style="font-size:10px;color:var(--text-dim);margin-left:6px;">no estipulados</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;font-style:italic;">Rebotes, propinas, trabajos inesperados, comisiones, ventas de fotos... todo suma.</div>
+      <div id="extras-list"><div class="tracker-empty">Ningún ingreso extra registrado aún.</div></div>
+      <button class="tracker-add-btn" onclick="addExtraEntry()">+ Registrar ingreso inesperado</button>
+    </div>
+
+    <!-- PROYECTOS FREELANCE -->
+    <div class="tracker-section">
+      <div class="tracker-label">Proyectos freelance del mes <span id="tracker-total" style="color:var(--accent);margin-left:8px;">$0</span> <span style="color:var(--text-dim);font-size:10px;" id="tracker-falta"></span></div>
+      <div id="tracker-list"><div class="tracker-empty">Aún no has registrado proyectos este mes.</div></div>
+      <button class="tracker-add-btn" onclick="addTrackerEntry()">+ Registrar proyecto cerrado</button>
+    </div>
+
+    <!-- RESUMEN TOTAL MES -->
+    <div style="margin-top:16px;background:var(--surface3);border:1px solid var(--border);border-radius:2px;padding:14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+      <div class="fin-stat"><span class="fin-stat-label">Freelance</span><span class="fin-stat-value accent" id="resumen-freelance">$0</span></div>
+      <div class="fin-stat"><span class="fin-stat-label">Extras</span><span class="fin-stat-value" style="color:var(--usd);" id="resumen-extras">$0</span></div>
+      <div class="fin-stat"><span class="fin-stat-label">Total mes</span><span class="fin-stat-value green" id="resumen-total">$0</span></div>
+    </div>
+  </div>
+
+  <div style="text-align:right;">
+    <button class="btn-pdf" style="width:auto;padding:12px 28px;" onclick="goStep(1)">Siguiente → Mi Perfil</button>
+  </div>
+</div>
+
+<!-- ══ PANEL 1: MI PERFIL ══ -->
+<div class="step-panel" id="panel1">
+  <div class="card">
+    <div class="card-title">Tu información — aparece en el PDF</div>
+    <div class="logo-upload-area" id="logo-drop">
+      <img class="logo-preview" id="logo-preview-img" src="" alt="Logo">
+      <div class="logo-upload-text" id="logo-upload-text">Haz clic para subir tu logo</div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--text-dim);margin-top:4px;">PNG, JPG · Fondo transparente recomendado</div>
+      <input type="file" accept="image/*" onchange="handleLogo(this)">
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Tu nombre / marca</label><input type="text" id="my-name" value="Cristian iBamen" oninput="updateAll()"></div>
+      <div class="form-group"><label class="form-label">Tagline</label><input type="text" id="my-tagline" value="Calidad de Productora. Agilidad de Creador." oninput="updateAll()"></div>
+      <div class="form-group"><label class="form-label">Correo</label><input type="text" id="my-email" value="cristianibamen@gmail.com" oninput="updateAll()"></div>
+      <div class="form-group"><label class="form-label">WhatsApp</label><input type="text" id="my-phone" value="+573007723820" oninput="updateAll()"></div>
+      <div class="form-group"><label class="form-label">Instagram</label><input type="text" id="my-ig" value="@cristianibamen" oninput="updateAll()"></div>
+      <div class="form-group"><label class="form-label">Web</label><input type="text" id="my-web" value="www.cristianibamen.art" oninput="updateAll()"></div>
+      <div class="form-group">
+        <label class="form-label">Número de cotización</label>
+        <input type="number" id="my-quote-num" placeholder="ej. 001" oninput="updateAll()" style="font-family:'DM Mono',monospace;">
+        <span style="font-size:10px;color:var(--text-dim);margin-top:3px;">Déjalo vacío para usar número automático</span>
+      </div>
+    </div>
+    <div style="margin-top:18px;display:flex;justify-content:space-between;">
+      <button class="btn-sec" style="width:auto;padding:9px 18px;" onclick="goStep(0)">← Volver</button>
+      <button class="btn-pdf" style="width:auto;padding:12px 26px;" onclick="goStep(2)">Siguiente → Cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PANEL 2: CLIENTE ══ -->
+<div class="step-panel" id="panel2">
+  <div class="card">
+    <div class="card-title">Datos del cliente</div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Nombre / Contacto</label><input type="text" id="cl-name" placeholder="ej. María García" oninput="updateAll()"></div>
+      <div class="form-group"><label class="form-label">Empresa / Marca</label><input type="text" id="cl-empresa" placeholder="ej. Marca XYZ S.A.S." oninput="updateAll()"></div>
+      <div class="form-group"><label class="form-label">Correo</label><input type="text" id="cl-email" placeholder="cliente@empresa.com" oninput="updateAll()"></div>
+      <div class="form-group"><label class="form-label">Teléfono</label><input type="text" id="cl-phone" placeholder="+57 300 000 0000" oninput="updateAll()"></div>
+      <div class="form-group"><label class="form-label">NIT / Cédula (opcional)</label><input type="text" id="cl-nit" placeholder="900.123.456-7" oninput="updateAll()"></div>
+      <div class="form-group"><label class="form-label">Ciudad</label><input type="text" id="cl-ciudad" placeholder="Bogotá, Colombia" oninput="updateAll()"></div>
+      <div class="form-group full"><label class="form-label">Notas del proyecto / brief</label><textarea id="cl-notas" placeholder="Describe el proyecto, fecha tentativa, referencias, necesidades especiales..." oninput="updateAll()"></textarea></div>
+    </div>
+    <div style="margin-top:18px;display:flex;justify-content:space-between;">
+      <button class="btn-sec" style="width:auto;padding:9px 18px;" onclick="goStep(1)">← Volver</button>
+      <button class="btn-pdf" style="width:auto;padding:12px 26px;" onclick="goStep(3)">Siguiente → Servicios</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PANEL 3: SERVICIOS ══ -->
+<div class="step-panel" id="panel3">
+<div class="layout">
+<div>
+
+<!-- 01 FOTO EDITORIAL -->
+<div class="section">
+  <div class="section-header"><span class="section-num">01</span><span class="section-title">Sesión de Foto Editorial</span><div class="section-line"></div></div>
+  <div class="service-card" id="card-foto" onclick="toggleService('foto')">
+    <div class="service-header">
+      <div class="service-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#0a0a08" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      <div class="service-info"><div class="service-name">Fotografía Editorial <span class="tag tag-pop">popular</span></div><div class="service-desc">Solo fotografía. Styling y Makeup son adicionales.</div></div>
+      <div class="service-base-price">desde<br><span id="foto-base-display">$1.200.000</span></div>
+    </div>
+    <div class="service-options" onclick="event.stopPropagation()">
+      <div class="option-label" style="margin-top:14px;">Selecciona un paquete</div>
+      <div class="pack-grid" id="foto-packs">
+        <div class="pack-pill selected" data-value="1200000" onclick="selectPack('foto',this)">
+          <div class="pack-pill-name">Básico</div>
+          <div class="pack-pill-price" data-cop="1200000">$1.200.000</div>
+          <div class="pack-pill-desc">Hasta 20 fotos editadas · 1 día de sesión</div>
+        </div>
+        <div class="pack-pill" data-value="1900000" onclick="selectPack('foto',this)">
+          <div class="pack-pill-name">Estándar</div>
+          <div class="pack-pill-price" data-cop="1900000">$1.900.000</div>
+          <div class="pack-pill-desc">Hasta 40 fotos · 2 looks · moodboard previo</div>
+        </div>
+        <div class="pack-pill" data-value="3000000" onclick="selectPack('foto',this)">
+          <div class="pack-pill-name">Premium</div>
+          <div class="pack-pill-price" data-cop="3000000">$3.000.000</div>
+          <div class="pack-pill-desc">Fotos ilimitadas · BTS · 2 locaciones · moodboard</div>
+        </div>
+      </div>
+      <div class="includes-list" id="foto-includes">
+        <div class="option-label" style="margin-top:12px;">Incluye</div>
+        <div class="inc-item"><div class="inc-dot"></div>Reunión de brief previa (virtual)</div>
+        <div class="inc-item"><div class="inc-dot"></div>Selección y edición de fotos en alta resolución</div>
+        <div class="inc-item"><div class="inc-dot"></div>Entrega por Google Drive · 5–7 días hábiles</div>
+        <div class="inc-item"><div class="inc-dot"></div>2 rondas de revisión incluidas</div>
+      </div>
+      <div class="addon-list" onclick="event.stopPropagation()">
+        <div class="option-label" style="margin-top:12px;">Adicionales</div>
+        <div class="addon-item" onclick="toggleAddon(this,600000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Styling &amp; Makeup profesional</span><span class="addon-price" data-cop="600000">+$600.000</span></div>
+        <div class="addon-item" onclick="toggleAddon(this,400000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Modelo profesional</span><span class="addon-price" data-cop="400000">+$400.000</span></div>
+        <div class="addon-item" onclick="toggleAddon(this,350000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Reel de BTS para RRSS</span><span class="addon-price" data-cop="350000">+$350.000</span></div>
+        <div class="addon-item" onclick="toggleAddon(this,300000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Locación especial (permisos + viáticos)</span><span class="addon-price" data-cop="300000">+desde $300.000</span></div>
+      </div>
+      <div class="service-note">Entrega: archivos JPG/PNG editados en alta resolución. Viáticos fuera de Bogotá se cotizan aparte.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 02 RRSS -->
+<div class="section">
+  <div class="section-header"><span class="section-num">02</span><span class="section-title">Creación de Contenido RRSS</span><div class="section-line"></div></div>
+
+  <div class="service-card" id="card-influencer" onclick="toggleService('influencer')">
+    <div class="service-header">
+      <div class="service-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#0a0a08" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      <div class="service-info"><div class="service-name">Como Creador / Influencer</div><div class="service-desc">Tú apareces. Incluye derechos de uso de imagen.</div></div>
+      <div class="service-base-price">desde<br><span id="influencer-base-display">$900.000</span></div>
+    </div>
+    <div class="service-options" onclick="event.stopPropagation()">
+      <div class="option-label" style="margin-top:14px;">Selecciona un paquete</div>
+      <div class="pack-grid" id="influencer-packs">
+        <div class="pack-pill selected" data-value="900000" onclick="selectPack('influencer',this)">
+          <div class="pack-pill-name">Spark</div>
+          <div class="pack-pill-price" data-cop="900000">$900.000</div>
+          <div class="pack-pill-desc">1 Reel / TikTok · uso RRSS 30 días</div>
+        </div>
+        <div class="pack-pill" data-value="2200000" onclick="selectPack('influencer',this)">
+          <div class="pack-pill-name">Boost</div>
+          <div class="pack-pill-price" data-cop="2200000">$2.200.000</div>
+          <div class="pack-pill-desc">3 Reels + 3 fotos · uso RRSS indefinido</div>
+        </div>
+        <div class="pack-pill" data-value="4000000" onclick="selectPack('influencer',this)">
+          <div class="pack-pill-name">Campaña</div>
+          <div class="pack-pill-price" data-cop="4000000">$4.000.000</div>
+          <div class="pack-pill-desc">12+ piezas mensuales · uso RRSS + pauta</div>
+        </div>
+      </div>
+      <div class="includes-list">
+        <div class="option-label" style="margin-top:12px;">Incluye en todos</div>
+        <div class="inc-item"><div class="inc-dot"></div>Brief y propuesta creativa / moodboard</div>
+        <div class="inc-item"><div class="inc-dot"></div>Video editado con color + música licenciada + subtítulos</div>
+        <div class="inc-item"><div class="inc-dot"></div>Formato vertical (9:16) + horizontal (16:9)</div>
+        <div class="inc-item"><div class="inc-dot"></div>2 rondas de revisión · entrega por Google Drive</div>
+      </div>
+      <div class="addon-list" onclick="event.stopPropagation()">
+        <div class="option-label" style="margin-top:12px;">Adicionales</div>
+        <div class="addon-item" onclick="toggleAddon(this,500000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Derechos para pauta digital (whitelisting)</span><span class="addon-price" data-cop="500000">+$500.000</span></div>
+        <div class="addon-item" onclick="toggleAddon(this,300000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Captions / textos para publicación</span><span class="addon-price" data-cop="300000">+$300.000</span></div>
+        <div class="addon-item" onclick="toggleAddon(this,700000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Derechos medios tradicionales</span><span class="addon-price" data-cop="700000">+$700.000</span></div>
+      </div>
+      <div class="service-note">Perfil micro-influencer (3.102 seguidores). Nicho audiovisual Bogotá. Los derechos de uso se especifican por contrato.</div>
+    </div>
+  </div>
+
+  <div class="service-card" id="card-realizador" onclick="toggleService('realizador')" style="margin-top:10px;">
+    <div class="service-header">
+      <div class="service-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#0a0a08" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      <div class="service-info"><div class="service-name">Como Realizador <span class="tag tag-new">recomendado</span></div><div class="service-desc">Grabas y editas para la marca. Sin uso de tu imagen.</div></div>
+      <div class="service-base-price">desde<br><span id="realizador-base-display">$1.600.000</span></div>
+    </div>
+    <div class="service-options" onclick="event.stopPropagation()">
+      <div class="option-label" style="margin-top:14px;">Selecciona un paquete</div>
+      <div class="pack-grid" id="realizador-packs" style="grid-template-columns:repeat(2,1fr);">
+        <div class="pack-pill selected" data-value="1600000" onclick="selectPack('realizador',this)">
+          <div class="pack-pill-name">Pack S</div>
+          <div class="pack-pill-price" data-cop="1600000">$1.600.000</div>
+          <div class="pack-pill-desc">4 piezas · 2 video + 2 foto · 1 día prod</div>
+        </div>
+        <div class="pack-pill" data-value="2900000" onclick="selectPack('realizador',this)">
+          <div class="pack-pill-name">Pack M</div>
+          <div class="pack-pill-price" data-cop="2900000">$2.900.000</div>
+          <div class="pack-pill-desc">8 piezas mixtas · 2 días prod</div>
+        </div>
+        <div class="pack-pill" data-value="4800000" onclick="selectPack('realizador',this)">
+          <div class="pack-pill-name">Pack L</div>
+          <div class="pack-pill-price" data-cop="4800000">$4.800.000</div>
+          <div class="pack-pill-desc">15 piezas + estrategia · 3–4 días prod</div>
+        </div>
+        <div class="pack-pill" data-value="7500000" onclick="selectPack('realizador',this)">
+          <div class="pack-pill-name">Pack XL</div>
+          <div class="pack-pill-price" data-cop="7500000">$7.500.000</div>
+          <div class="pack-pill-desc">30 piezas + gestión mensual · semana prod</div>
+        </div>
+      </div>
+      <div class="includes-list">
+        <div class="option-label" style="margin-top:12px;">Incluye en todos</div>
+        <div class="inc-item"><div class="inc-dot"></div>Reunión de brief + propuesta creativa / moodboard</div>
+        <div class="inc-item"><div class="inc-dot"></div>Video con color grading + música licenciada + subtítulos animados</div>
+        <div class="inc-item"><div class="inc-dot"></div>Formato vertical (9:16) y horizontal (16:9) por pieza</div>
+        <div class="inc-item"><div class="inc-dot"></div>2 rondas de revisión · entrega Google Drive · 7–10 días hábiles</div>
+      </div>
+      <div class="addon-list" onclick="event.stopPropagation()">
+        <div class="option-label" style="margin-top:12px;">Adicionales</div>
+        <div class="addon-item" onclick="toggleAddon(this,500000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Guion / Storyboard detallado</span><span class="addon-price" data-cop="500000">+$500.000</span></div>
+        <div class="addon-item" onclick="toggleAddon(this,400000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Motion graphics / Animaciones</span><span class="addon-price" data-cop="400000">+$400.000</span></div>
+        <div class="addon-item" onclick="toggleAddon(this,600000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Viáticos fuera de Bogotá</span><span class="addon-price" data-cop="600000">+desde $600.000</span></div>
+      </div>
+      <div class="service-note">Optimizado para Instagram, TikTok y LinkedIn. Adaptable a brief de marca. Contrato requerido para Pack L y XL.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 03 UGC -->
+<div class="section">
+  <div class="section-header"><span class="section-num">03</span><span class="section-title">Contenido UGC</span><div class="section-line"></div></div>
+  <div class="service-card" id="card-ugc" onclick="toggleService('ugc')">
+    <div class="service-header">
+      <div class="service-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#0a0a08" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      <div class="service-info"><div class="service-name">User Generated Content</div><div class="service-desc">Contenido auténtico. Grabas y editas tú — la marca publica en sus canales.</div></div>
+      <div class="service-base-price">desde<br><span id="ugc-base-display">$650.000</span></div>
+    </div>
+    <div class="service-options" onclick="event.stopPropagation()">
+
+      <!-- MODO TOGGLE -->
+      <div style="display:flex;gap:0;margin-top:14px;border:1px solid var(--border);border-radius:2px;overflow:hidden;">
+        <button id="ugc-mode-agencia" onclick="setUGCMode('agencia')" style="flex:1;padding:8px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;border:none;background:var(--accent);color:var(--bg);cursor:pointer;transition:all .2s;">AGENCIA · precio acordado</button>
+        <button id="ugc-mode-directo" onclick="setUGCMode('directo')" style="flex:1;padding:8px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;border:none;background:transparent;color:var(--text-muted);cursor:pointer;transition:all .2s;">DIRECTO · calculo mi precio</button>
+      </div>
+
+      <!-- MODO AGENCIA -->
+      <div id="ugc-panel-agencia" style="margin-top:14px;">
+        <div class="option-label" style="margin-bottom:6px;">Precio acordado con la agencia</div>
+        <input type="number" id="ugc-agencia-precio" placeholder="ej. 500000" oninput="updateUGCAgencia()" style="margin-bottom:8px;">
+        <div style="font-size:11px;color:var(--text-dim);font-style:italic;">La agencia define el precio — ingresa el valor que te ofrecieron para ver si te conviene aceptar.</div>
+        <div id="ugc-agencia-viability" style="display:none;margin-top:10px;padding:9px;border-radius:2px;font-size:11px;line-height:1.5;"></div>
+      </div>
+
+      <!-- MODO DIRECTO -->
+      <div id="ugc-panel-directo" style="display:none;margin-top:14px;">
+
+        <!-- CÁLCULO BASE -->
+        <div style="background:var(--surface3);border:1px solid var(--border);border-radius:2px;padding:12px;margin-bottom:12px;">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;">Parámetros base</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div class="option-group">
+              <label class="option-label">Tus seguidores</label>
+              <input type="number" id="ugc-seguidores" value="3104" oninput="calcUGCDirecto()">
+            </div>
+            <div class="option-group">
+              <label class="option-label">Tarifa talent base</label>
+              <select id="ugc-tarifa-base" onchange="calcUGCDirecto()">
+                <option value="150">$150 COP × seguidor</option>
+                <option value="200">$200 COP × seguidor</option>
+                <option value="250">$250 COP × seguidor</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- BLOQUE PRODUCCIÓN -->
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:12px;margin-bottom:10px;">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;">① Creación del video</div>
+          <div style="font-size:11px;color:var(--text-muted);line-height:1.6;margin-bottom:10px;">Grabación + edición completa. Tú produces y editas — se aplica +50% sobre la tarifa talent.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
+            <div class="fin-stat"><span class="fin-stat-label">Talent</span><span class="fin-stat-value" id="ugc-precio-base">$465.600</span></div>
+            <div class="fin-stat"><span class="fin-stat-label">Producción (+50%)</span><span class="fin-stat-value" style="color:var(--usd);" id="ugc-precio-prod">$232.800</span></div>
+            <div class="fin-stat"><span class="fin-stat-label">Creación / video</span><span class="fin-stat-value accent" id="ugc-precio-creacion">$698.400</span></div>
+          </div>
+          <div class="option-label" style="margin-bottom:8px;">Número de videos</div>
+          <div class="pack-grid" id="ugc-packs">
+            <div class="pack-pill selected" data-value="1" onclick="selectUGCVideos(this,1)">
+              <div class="pack-pill-name">1 video</div>
+              <div class="pack-pill-price" id="ugc-p1">$698.400</div>
+              <div class="pack-pill-desc">entrega 3 días</div>
+            </div>
+            <div class="pack-pill" data-value="3" onclick="selectUGCVideos(this,3)">
+              <div class="pack-pill-name">3 videos</div>
+              <div class="pack-pill-price" id="ugc-p3">$2.095.200</div>
+              <div class="pack-pill-desc">pack básico</div>
+            </div>
+            <div class="pack-pill" data-value="6" onclick="selectUGCVideos(this,6)">
+              <div class="pack-pill-name">6 videos</div>
+              <div class="pack-pill-price" id="ugc-p6">$4.190.400</div>
+              <div class="pack-pill-desc">retainer · −10%</div>
+            </div>
+          </div>
+          <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--border);">
+            <span style="font-size:12px;color:var(--text-muted);">Subtotal creación</span>
+            <span style="font-family:'DM Mono',monospace;font-size:15px;color:var(--accent);" id="ugc-sub-creacion">$698.400</span>
+          </div>
+        </div>
+
+        <!-- BLOQUE DERECHOS - TOGGLE -->
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:12px;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);">② Derechos de pauta</div>
+            <div style="display:flex;background:var(--surface3);border:1px solid var(--border);border-radius:3px;overflow:hidden;">
+              <button id="ugc-der-no" onclick="event.stopPropagation();setUGCDerechos(false)"
+                style="padding:4px 10px;font-family:'DM Mono',monospace;font-size:9px;border:none;background:var(--accent);color:var(--bg);cursor:pointer;transition:all .2s;">NO</button>
+              <button id="ugc-der-si" onclick="event.stopPropagation();setUGCDerechos(true)"
+                style="padding:4px 10px;font-family:'DM Mono',monospace;font-size:9px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;transition:all .2s;">SÍ</button>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--text-dim);font-style:italic;margin-bottom:8px;">Licencia para usar el video en pauta digital pagada. Se cobra por separado de la producción.</div>
+
+          <!-- Panel derechos cuando está activo -->
+          <div id="ugc-derechos-panel" style="display:none;">
+            <div class="option-group" style="margin-bottom:10px;">
+              <label class="option-label">Tipo de licencia de pauta</label>
+              <select id="ugc-licencia-tipo" onchange="calcUGCDirecto()">
+                <option value="100">Pauta básica (×100 COP × seguidor)</option>
+                <option value="200">Pauta intensiva (×200 COP × seguidor)</option>
+                <option value="300">Whitelisting (×300 COP × seguidor)</option>
+              </select>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+              <div class="fin-stat"><span class="fin-stat-label">Derechos / video</span><span class="fin-stat-value" style="color:var(--usd);" id="ugc-precio-derechos">$310.400</span></div>
+              <div class="fin-stat"><span class="fin-stat-label">Subtotal derechos</span><span class="fin-stat-value" style="color:var(--usd);" id="ugc-sub-derechos">$310.400</span></div>
+            </div>
+          </div>
+
+          <!-- Resumen total con/sin derechos -->
+          <div style="background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.2);border-radius:2px;padding:10px;margin-top:8px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+              <span style="font-size:11px;color:var(--text-muted);">Creación</span>
+              <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text);" id="ugc-total-creacion-line">$698.400</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;" id="ugc-derechos-line" style="display:none;">
+              <span style="font-size:11px;color:var(--text-muted);">Derechos de pauta</span>
+              <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--usd);" id="ugc-total-derechos-line">$0</span>
+            </div>
+            <div style="height:1px;background:rgba(201,168,76,.2);margin:6px 0;"></div>
+            <div style="display:flex;justify-content:space-between;">
+              <span style="font-size:12px;color:var(--text);font-weight:500;" id="ugc-total-label">Total UGC</span>
+              <span style="font-family:'DM Mono',monospace;font-size:16px;color:var(--accent);font-weight:500;" id="ugc-precio-total">$698.400</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="includes-list" style="margin-top:12px;">
+        <div class="option-label">Incluye en todos</div>
+        <div class="inc-item"><div class="inc-dot"></div>Grabación + edición completa (color + música + subtítulos)</div>
+        <div class="inc-item"><div class="inc-dot"></div>Formato vertical 9:16 + horizontal 16:9</div>
+        <div class="inc-item"><div class="inc-dot"></div>1 ronda de revisión · entrega Google Drive</div>
+      </div>
+      <div class="service-note">Ideal para ads META y TikTok. La marca publica en sus canales sin uso de imagen tuya en sus comunicaciones.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 05 EDICIÓN DE VIDEOS -->
+<div class="section">
+  <div class="section-header"><span class="section-num">05</span><span class="section-title">Edición de Videos</span><div class="section-line"></div></div>
+  <div class="service-card" id="card-edicion" onclick="toggleService('edicion')">
+    <div class="service-header">
+      <div class="service-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#0a0a08" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      <div class="service-info">
+        <div class="service-name">Edición de Videos</div>
+        <div class="service-desc">Solo edición — el cliente entrega el material grabado.</div>
+      </div>
+      <div class="service-base-price">desde<br><span id="edicion-base-display">$120.000</span></div>
+    </div>
+    <div class="service-options" onclick="event.stopPropagation()">
+
+      <!-- CONFIGURADOR DE ÍTEM -->
+      <div style="margin-top:14px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:14px;">
+        <div class="option-label" style="margin-bottom:10px;">Configura un tipo de edición</div>
+
+        <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:2px;overflow:hidden;margin-bottom:12px;">
+          <button id="ed-mode-reel" onclick="event.stopPropagation();setEdicionMode('reel')"
+            style="flex:1;padding:7px 4px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.06em;border:none;background:var(--accent);color:var(--bg);cursor:pointer;transition:all .2s;">REEL / TIKTOK</button>
+          <button id="ed-mode-youtube" onclick="event.stopPropagation();setEdicionMode('youtube')"
+            style="flex:1;padding:7px 4px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.06em;border:none;background:transparent;color:var(--text-muted);cursor:pointer;transition:all .2s;">YOUTUBE / LARGO</button>
+          <button id="ed-mode-cine" onclick="event.stopPropagation();setEdicionMode('cine')"
+            style="flex:1;padding:7px 4px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.06em;border:none;background:transparent;color:var(--text-muted);cursor:pointer;transition:all .2s;">CINEMÁTICO</button>
+        </div>
+
+        <!-- PANEL REEL -->
+        <div id="ed-panel-reel">
+          <div class="option-label" style="margin-bottom:8px;">Duración</div>
+          <div class="pack-grid" id="ed-reel-duracion" style="grid-template-columns:repeat(4,1fr);">
+            <div class="pack-pill selected" onclick="event.stopPropagation();selectEdDuracion('reel',this,120000)"><div class="pack-pill-name">15s</div><div class="pack-pill-price" data-cop="120000">$120.000</div><div class="pack-pill-desc">corte rápido</div></div>
+            <div class="pack-pill" onclick="event.stopPropagation();selectEdDuracion('reel',this,180000)"><div class="pack-pill-name">30s</div><div class="pack-pill-price" data-cop="180000">$180.000</div><div class="pack-pill-desc">estándar</div></div>
+            <div class="pack-pill" onclick="event.stopPropagation();selectEdDuracion('reel',this,250000)"><div class="pack-pill-name">60s</div><div class="pack-pill-price" data-cop="250000">$250.000</div><div class="pack-pill-desc">completo</div></div>
+            <div class="pack-pill" onclick="event.stopPropagation();selectEdDuracion('reel',this,320000)"><div class="pack-pill-name">90s</div><div class="pack-pill-price" data-cop="320000">$320.000</div><div class="pack-pill-desc">extendido</div></div>
+          </div>
+        </div>
+
+        <!-- PANEL YOUTUBE -->
+        <div id="ed-panel-youtube" style="display:none;">
+          <div class="option-label" style="margin-bottom:8px;">Duración</div>
+          <div class="pack-grid" id="ed-youtube-duracion" style="grid-template-columns:repeat(3,1fr);">
+            <div class="pack-pill selected" onclick="event.stopPropagation();selectEdDuracion('youtube',this,350000)"><div class="pack-pill-name">hasta 3 min</div><div class="pack-pill-price" data-cop="350000">$350.000</div><div class="pack-pill-desc">intro, teaser</div></div>
+            <div class="pack-pill" onclick="event.stopPropagation();selectEdDuracion('youtube',this,500000)"><div class="pack-pill-name">hasta 5 min</div><div class="pack-pill-price" data-cop="500000">$500.000</div><div class="pack-pill-desc">video corto</div></div>
+            <div class="pack-pill" onclick="event.stopPropagation();selectEdDuracion('youtube',this,750000)"><div class="pack-pill-name">hasta 10 min</div><div class="pack-pill-price" data-cop="750000">$750.000</div><div class="pack-pill-desc">estándar</div></div>
+            <div class="pack-pill" onclick="event.stopPropagation();selectEdDuracion('youtube',this,1000000)"><div class="pack-pill-name">hasta 15 min</div><div class="pack-pill-price" data-cop="1000000">$1.000.000</div><div class="pack-pill-desc">largo</div></div>
+            <div class="pack-pill" onclick="event.stopPropagation();selectEdDuracion('youtube',this,1300000)"><div class="pack-pill-name">hasta 20 min</div><div class="pack-pill-price" data-cop="1300000">$1.300.000</div><div class="pack-pill-desc">entrevista</div></div>
+            <div class="pack-pill" onclick="event.stopPropagation();selectEdDuracion('youtube',this,1700000)"><div class="pack-pill-name">30 min +</div><div class="pack-pill-price" data-cop="1700000">$1.700.000</div><div class="pack-pill-desc">clase / doc</div></div>
+          </div>
+        </div>
+
+        <!-- PANEL CINEMÁTICO -->
+        <div id="ed-panel-cine" style="display:none;">
+          <div class="option-label" style="margin-bottom:8px;">Duración</div>
+          <div class="pack-grid" id="ed-cine-duracion" style="grid-template-columns:repeat(2,1fr);">
+            <div class="pack-pill selected" onclick="event.stopPropagation();selectEdDuracion('cine',this,1200000)"><div class="pack-pill-name">hasta 5 min</div><div class="pack-pill-price" data-cop="1200000">$1.200.000</div><div class="pack-pill-desc">spot, clip musical</div></div>
+            <div class="pack-pill" onclick="event.stopPropagation();selectEdDuracion('cine',this,2200000)"><div class="pack-pill-name">hasta 15 min</div><div class="pack-pill-price" data-cop="2200000">$2.200.000</div><div class="pack-pill-desc">cortometraje corto</div></div>
+            <div class="pack-pill" onclick="event.stopPropagation();selectEdDuracion('cine',this,3500000)"><div class="pack-pill-name">hasta 30 min</div><div class="pack-pill-price" data-cop="3500000">$3.500.000</div><div class="pack-pill-desc">cortometraje / doc</div></div>
+            <div class="pack-pill" onclick="event.stopPropagation();selectEdDuracion('cine',this,6000000)"><div class="pack-pill-name">largo metraje</div><div class="pack-pill-price" data-cop="6000000">$6.000.000</div><div class="pack-pill-desc">60 min+</div></div>
+          </div>
+        </div>
+
+        <!-- CANTIDAD + BOTÓN AGREGAR -->
+        <div style="display:flex;align-items:center;gap:10px;margin-top:12px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button class="qty-btn" onclick="event.stopPropagation();changeEdVideos(-1)">−</button>
+            <span class="qty-num" id="ed-videos-num">1</span>
+            <button class="qty-btn" onclick="event.stopPropagation();changeEdVideos(1)">+</button>
+          </div>
+          <span style="font-size:11px;color:var(--text-muted);flex:1;" id="ed-item-preview">1 × Reel 15s = $120.000</span>
+          <button onclick="event.stopPropagation();addEdicionItem()"
+            style="padding:8px 14px;background:var(--accent);border:none;border-radius:2px;color:var(--bg);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;cursor:pointer;white-space:nowrap;flex-shrink:0;">
+            + Agregar
+          </button>
+        </div>
+      </div>
+
+      <!-- LISTA DE ÍTEMS AGREGADOS -->
+      <div style="margin-top:12px;" id="ed-items-wrap" style="display:none;">
+        <div class="option-label" style="margin-bottom:8px;">Ítems de edición</div>
+        <div id="ed-items-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+      </div>
+
+      <!-- ADICIONALES -->
+      <div class="addon-list" style="margin-top:14px;" onclick="event.stopPropagation()">
+        <div class="option-label">Adicionales (aplican a todos los ítems)</div>
+        <div class="addon-item" onclick="toggleAddon(this,80000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Subtítulos / captions animados</span><span class="addon-price" data-cop="80000">+$80.000</span></div>
+        <div class="addon-item" onclick="toggleAddon(this,100000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Motion graphics / textos animados</span><span class="addon-price" data-cop="100000">+$100.000</span></div>
+        <div class="addon-item" onclick="toggleAddon(this,60000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Formato adicional (vertical + horizontal)</span><span class="addon-price" data-cop="60000">+$60.000</span></div>
+        <div class="addon-item" onclick="toggleAddon(this,120000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Color grading avanzado (LUT personalizado)</span><span class="addon-price" data-cop="120000">+$120.000</span></div>
+      </div>
+
+      <!-- SUBTOTAL -->
+      <div style="margin-top:14px;background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.25);border-radius:2px;padding:12px 14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <div style="font-size:11px;color:var(--text-muted);" id="ed-subtotal-label">Sin ítems agregados</div>
+          <div style="font-family:'DM Mono',monospace;font-size:17px;color:var(--accent);" id="ed-subtotal-display">$0</div>
+        </div>
+        <div style="font-size:10px;color:var(--text-dim);" id="ed-descuento-label"></div>
+      </div>
+
+      <div class="includes-list" style="margin-top:14px;">
+        <div class="option-label">Incluye en todos</div>
+        <div class="inc-item"><div class="inc-dot"></div>Color grading básico + música licenciada</div>
+        <div class="inc-item"><div class="inc-dot"></div>2 rondas de revisión · entrega Google Drive</div>
+        <div class="inc-item"><div class="inc-dot"></div>Archivo final en resolución original</div>
+      </div>
+      <div class="service-note">El cliente entrega el material grabado. No incluye rodaje ni producción.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 06 FOTOGRAFÍA LIBRE -->
+<div class="section">
+  <div class="section-header"><span class="section-num">06</span><span class="section-title">Fotografía — Sesión Libre</span><div class="section-line"></div></div>
+  <div class="service-card" id="card-fotol" onclick="toggleService('fotol')">
+    <div class="service-header">
+      <div class="service-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#0a0a08" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      <div class="service-info"><div class="service-name">Fotografía — Sesión Libre</div><div class="service-desc">Retratos, parejas, preboda, corporativo. Precio calculado según tu tiempo real.</div></div>
+      <div class="service-base-price">calculado<br><span id="fotol-base-display" style="font-size:11px;">por parámetros</span></div>
+    </div>
+    <div class="service-options" onclick="event.stopPropagation()">
+      <div style="font-size:12px;color:var(--text-muted);margin:14px 0 12px;line-height:1.6;">Define los parámetros de la sesión — el precio se calcula en base a tu tarifa real de <strong style="color:var(--text);">$200.000/hora</strong> de sesión y <strong style="color:var(--text);">$28.000/foto básica · $70.000/foto avanzada</strong> de edición.</div>
+
+      <!-- NOMBRE DE LA SESIÓN -->
+      <div class="form-group" style="margin-bottom:12px;">
+        <label class="option-label">Tipo de sesión</label>
+        <input type="text" id="fotol-nombre" placeholder="ej. Preboda, Retrato corporativo, Pareja..." oninput="calcFotol()" style="font-size:13px;">
+      </div>
+
+      <!-- HORAS + FOTOS -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div>
+          <div class="option-label" style="margin-bottom:8px;">Horas de sesión</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button class="qty-btn" onclick="event.stopPropagation();changeFotolParam('horas',-1)">−</button>
+            <span class="qty-num" id="fotol-horas-num">2</span>
+            <button class="qty-btn" onclick="event.stopPropagation();changeFotolParam('horas',1)">+</button>
+            <span style="font-size:10px;color:var(--text-dim);">h</span>
+          </div>
+        </div>
+        <div>
+          <div class="option-label" style="margin-bottom:8px;">Fotos editadas a entregar</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button class="qty-btn" onclick="event.stopPropagation();changeFotolParam('fotos',-5)">−</button>
+            <span class="qty-num" id="fotol-fotos-num" style="min-width:28px;">10</span>
+            <button class="qty-btn" onclick="event.stopPropagation();changeFotolParam('fotos',5)">+</button>
+            <span style="font-size:10px;color:var(--text-dim);">fotos</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TIPO DE RETOQUE -->
+      <div style="margin-bottom:12px;">
+        <div class="option-label" style="margin-bottom:8px;">Tipo de edición</div>
+        <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:2px;overflow:hidden;">
+          <button id="fotol-tipo-basica" onclick="event.stopPropagation();setFotolTipo('basica')"
+            style="flex:1;padding:8px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;border:none;background:var(--accent);color:var(--bg);cursor:pointer;transition:all .2s;">
+            BÁSICA · color y ajustes
+          </button>
+          <button id="fotol-tipo-avanzada" onclick="event.stopPropagation();setFotolTipo('avanzada')"
+            style="flex:1;padding:8px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;border:none;background:transparent;color:var(--text-muted);cursor:pointer;transition:all .2s;">
+            AVANZADA · estilo y color
+          </button>
+        </div>
+        <div style="font-size:10px;color:var(--text-dim);margin-top:6px;font-style:italic;" id="fotol-tipo-nota">6 min por foto · corrección de color, exposición, contraste</div>
+      </div>
+
+      <!-- DESGLOSE -->
+      <div style="background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.2);border-radius:2px;padding:12px;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+          <span style="font-size:11px;color:var(--text-muted);" id="fotol-sesion-label">Sesión (2h × $200.000)</span>
+          <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text);" id="fotol-sesion-val">$400.000</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+          <span style="font-size:11px;color:var(--text-muted);" id="fotol-edicion-label">Edición (10 fotos × $28.000)</span>
+          <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text);" id="fotol-edicion-val">$280.000</span>
+        </div>
+        <div style="height:1px;background:rgba(201,168,76,.2);margin:8px 0;"></div>
+        <div style="display:flex;justify-content:space-between;">
+          <span style="font-size:12px;color:var(--text);font-weight:500;">Total sesión</span>
+          <span style="font-family:'DM Mono',monospace;font-size:17px;color:var(--accent);font-weight:500;" id="fotol-total-display">$680.000</span>
+        </div>
+        <div style="font-size:10px;color:var(--text-dim);margin-top:4px;" id="fotol-tiempo-edicion"></div>
+      </div>
+
+      <!-- ADICIONALES -->
+      <div class="addon-list" onclick="event.stopPropagation()">
+        <div class="option-label">Adicionales</div>
+        <div class="addon-item" onclick="toggleAddon(this,600000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Styling & Makeup</span><span class="addon-price" data-cop="600000">+$600.000</span></div>
+        <div class="addon-item" onclick="toggleAddon(this,400000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Modelo adicional</span><span class="addon-price" data-cop="400000">+$400.000</span></div>
+        <div class="addon-item" onclick="toggleAddon(this,300000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Locación especial</span><span class="addon-price" data-cop="300000">+desde $300.000</span></div>
+        <div class="addon-item" onclick="toggleAddon(this,800000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Viáticos fuera de Bogotá</span><span class="addon-price" data-cop="800000">+desde $800.000</span></div>
+      </div>
+      <div class="includes-list" style="margin-top:14px;">
+        <div class="option-label">Incluye</div>
+        <div class="inc-item"><div class="inc-dot"></div>Sesión en locación acordada · Bogotá</div>
+        <div class="inc-item"><div class="inc-dot"></div>Selección y edición de las mejores tomas</div>
+        <div class="inc-item"><div class="inc-dot"></div>Entrega en Google Drive · alta resolución</div>
+        <div class="inc-item"><div class="inc-dot"></div>1 ronda de revisión incluida</div>
+      </div>
+      <div class="service-note">Precio calculado sobre tu tarifa real. Anticipo del 50% para confirmar fecha.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 07 FILMMAKING (renumbered) -->
+<div class="section">
+  <div class="section-header"><span class="section-num">07</span><span class="section-title">Filmmaking Corporativo / Eventos</span><div class="section-line"></div></div>
+  <div class="service-card" id="card-film" onclick="toggleService('film')">
+    <div class="service-header">
+      <div class="service-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#0a0a08" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      <div class="service-info"><div class="service-name">Filmmaking Corporativo / Eventos</div><div class="service-desc">Rodaje por jornadas (4h c/u) + edición cotizada por separado.</div></div>
+      <div class="service-base-price">desde<br><span id="film-base-display">$900.000</span></div>
+    </div>
+    <div class="service-options" onclick="event.stopPropagation()">
+
+      <!-- MODO RODAJE: toggle jornadas / horas / paquete -->
+      <div style="margin-top:14px;">
+        <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:2px;overflow:hidden;margin-bottom:14px;">
+          <button id="film-mode-jornadas" onclick="event.stopPropagation();setFilmMode('jornadas')"
+            style="flex:1;padding:8px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.08em;border:none;background:var(--accent);color:var(--bg);cursor:pointer;transition:all .2s;">
+            JORNADAS · 4h
+          </button>
+          <button id="film-mode-horas" onclick="event.stopPropagation();setFilmMode('horas')"
+            style="flex:1;padding:8px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.08em;border:none;background:transparent;color:var(--text-muted);cursor:pointer;transition:all .2s;">
+            HORAS · flexible
+          </button>
+          <button id="film-mode-paquete" onclick="event.stopPropagation();setFilmMode('paquete')"
+            style="flex:1;padding:8px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.08em;border:none;background:transparent;color:var(--text-muted);cursor:pointer;transition:all .2s;">
+            PAQUETE · eventos
+          </button>
+        </div>
+
+        <!-- PANEL JORNADAS -->
+        <div id="film-panel-jornadas">
+          <div class="option-label" style="margin-bottom:10px;">Jornadas de rodaje <span style="font-size:10px;color:var(--text-dim);font-style:italic;font-family:'DM Sans',sans-serif;letter-spacing:0;">($900.000 c/u · hasta 4h)</span></div>
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px;">
+            <button class="qty-btn" onclick="event.stopPropagation();changeJornadas(-1)">−</button>
+            <span class="qty-num" id="film-jornadas-num">1</span>
+            <button class="qty-btn" onclick="event.stopPropagation();changeJornadas(1)">+</button>
+            <div style="flex:1;display:flex;flex-direction:column;gap:2px;">
+              <span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--accent);" id="film-jornadas-precio">$900.000</span>
+              <span style="font-size:10px;color:var(--text-dim);" id="film-jornadas-horas">hasta 4 horas · 1 camarógrafo</span>
+            </div>
+          </div>
+          <div style="background:var(--surface3);border:1px solid var(--border);border-radius:2px;padding:10px 12px;font-size:11px;color:var(--text-muted);line-height:1.6;" id="film-jornadas-nota">
+            1 jornada (4h): ideal para lanzamientos, foros, charlas o actos protocolares cortos.
+          </div>
+        </div>
+
+        <!-- PANEL HORAS -->
+        <div id="film-panel-horas" style="display:none;">
+          <div class="option-label" style="margin-bottom:10px;">Horas de rodaje <span style="font-size:10px;color:var(--text-dim);font-style:italic;font-family:'DM Sans',sans-serif;letter-spacing:0;">para eventos cortos o solicitudes puntuales</span></div>
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px;">
+            <button class="qty-btn" onclick="event.stopPropagation();changeHoras(-1)">−</button>
+            <span class="qty-num" id="film-horas-num">1</span>
+            <button class="qty-btn" onclick="event.stopPropagation();changeHoras(1)">+</button>
+            <div style="flex:1;display:flex;flex-direction:column;gap:2px;">
+              <span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--accent);" id="film-horas-precio">$280.000</span>
+              <span style="font-size:10px;color:var(--text-dim);" id="film-horas-label">1 hora · tarifa senior</span>
+            </div>
+          </div>
+          <div style="background:var(--surface3);border:1px solid var(--border);border-radius:2px;padding:10px 12px;font-size:11px;color:var(--text-muted);line-height:1.6;" id="film-horas-nota">
+            Mínimo recomendado: 1 hora ($280.000). A partir de 4h conviene cambiar a jornada completa.
+          </div>
+          <!-- Sugerencia de jornada cuando conviene -->
+          <div id="film-horas-sugerencia" style="display:none;margin-top:8px;padding:9px 12px;background:rgba(201,168,76,.07);border:1px solid rgba(201,168,76,.3);border-radius:2px;font-size:11px;color:var(--accent);cursor:pointer;" onclick="event.stopPropagation();setFilmMode('jornadas')">
+            💡 Con 4h o más conviene usar Jornada ($900.000 fijo) — haz clic para cambiar
+          </div>
+        </div>
+      </div>
+
+        <!-- PANEL PAQUETE EVENTOS -->
+        <div id="film-panel-paquete" style="display:none;">
+          <div class="option-label" style="margin-bottom:6px;">Paquete de eventos múltiples <span style="font-size:10px;color:var(--text-dim);font-style:italic;font-family:'DM Sans',sans-serif;letter-spacing:0;">(define las horas de cada evento)</span></div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;line-height:1.5;">Cada evento tiene sus propias horas — así el evento de hoy (4h) y el de mañana (2h) se calculan exactamente.</div>
+
+          <!-- Lista de eventos -->
+          <div id="paq-eventos-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
+          <button onclick="event.stopPropagation();addPaqEvento()"
+            style="width:100%;padding:8px;background:transparent;border:1px dashed var(--border);border-radius:2px;color:var(--text-muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;cursor:pointer;margin-bottom:12px;transition:all .2s;"
+            onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+            onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">
+            + Agregar evento
+          </button>
+
+          <!-- Desglose paquete -->
+          <div style="background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.2);border-radius:2px;padding:12px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+              <span style="font-size:11px;color:var(--text-muted);">Total horas · precio normal</span>
+              <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim);text-decoration:line-through;" id="paq-precio-sin">$0</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+              <span style="font-size:11px;color:var(--text-muted);" id="paq-desc-label">Descuento paquete</span>
+              <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green);" id="paq-desc-valor">$0</span>
+            </div>
+            <div style="height:1px;background:rgba(201,168,76,.2);margin:8px 0;"></div>
+            <div style="display:flex;justify-content:space-between;">
+              <span style="font-size:12px;color:var(--text);font-weight:500;" id="paq-total-label">Total paquete</span>
+              <span style="font-family:'DM Mono',monospace;font-size:17px;color:var(--accent);font-weight:500;" id="paq-total-display">$0</span>
+            </div>
+            <div style="font-size:10px;color:var(--text-dim);margin-top:4px;" id="paq-por-evento"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EDICIÓN -->
+      <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">
+        <div class="option-label" style="margin-bottom:10px;">Edición del material <span style="font-size:10px;color:var(--text-dim);font-style:italic;font-family:'DM Sans',sans-serif;letter-spacing:0;">(se cobra aparte del rodaje)</span></div>
+        <div class="pack-grid" id="film-edicion-packs" style="grid-template-columns:repeat(2,1fr);">
+          <div class="pack-pill selected" data-edicion="0" onclick="event.stopPropagation();selectFilmEdicion(this,0)">
+            <div class="pack-pill-name">Sin edición</div>
+            <div class="pack-pill-price" data-cop="0">$0</div>
+            <div class="pack-pill-desc">Solo entrego material en bruto</div>
+          </div>
+          <div class="pack-pill" data-edicion="800000" onclick="event.stopPropagation();selectFilmEdicion(this,800000)">
+            <div class="pack-pill-name">Básica</div>
+            <div class="pack-pill-price" data-cop="800000">$800.000</div>
+            <div class="pack-pill-desc">Highlight 2–3 min · color + música</div>
+          </div>
+          <div class="pack-pill" data-edicion="1500000" onclick="event.stopPropagation();selectFilmEdicion(this,1500000)">
+            <div class="pack-pill-name">Completa</div>
+            <div class="pack-pill-price" data-cop="1500000">$1.500.000</div>
+            <div class="pack-pill-desc">Video completo + highlight + corte RRSS</div>
+          </div>
+          <div class="pack-pill" data-edicion="2500000" onclick="event.stopPropagation();selectFilmEdicion(this,2500000)">
+            <div class="pack-pill-name">Premium</div>
+            <div class="pack-pill-price" data-cop="2500000">$2.500.000</div>
+            <div class="pack-pill-desc">Documental / Brand Film · múltiples versiones</div>
+          </div>
+        </div>
+
+        <!-- REELS de evento -->
+        <div style="margin-top:12px;">
+          <div class="option-label" style="margin-bottom:8px;">Reels del evento <span style="font-size:10px;color:var(--text-dim);font-style:italic;font-family:'DM Sans',sans-serif;letter-spacing:0;">(30–60s · se suma a la edición)</span></div>
+          <div style="display:flex;align-items:center;gap:14px;">
+            <button class="qty-btn" onclick="event.stopPropagation();changeReels(-1)">−</button>
+            <span class="qty-num" id="film-reels-num">0</span>
+            <button class="qty-btn" onclick="event.stopPropagation();changeReels(1)">+</button>
+            <div style="flex:1;display:flex;flex-direction:column;gap:2px;">
+              <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--usd);" id="film-reels-precio">$0</span>
+              <span style="font-size:10px;color:var(--text-dim);" id="film-reels-hint">$350.000 por Reel · color + música + subtítulos</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBTOTAL -->
+      <div style="margin-top:14px;background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.25);border-radius:2px;padding:12px 14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <div style="font-size:11px;color:var(--text-muted);">Rodaje</div>
+          <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text);" id="film-sub-rodaje">$900.000</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;" id="film-sub-edicion-row">
+          <div style="font-size:11px;color:var(--text-muted);">Edición</div>
+          <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text);" id="film-sub-edicion">$0</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;" id="film-sub-reels-row" style="display:none;">
+          <div style="font-size:11px;color:var(--text-muted);">Reels</div>
+          <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--usd);" id="film-sub-reels">$0</div>
+        </div>
+        <div style="height:1px;background:rgba(201,168,76,.2);margin:8px 0;"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-size:12px;color:var(--text-muted);font-weight:500;">Total filmmaking</div>
+          <div style="font-family:'DM Mono',monospace;font-size:17px;color:var(--accent);font-weight:500;" id="film-subtotal-display">$900.000</div>
+        </div>
+      </div>
+
+      <!-- INCLUDES -->
+      <div class="includes-list" style="margin-top:14px;">
+        <div class="option-label">Incluye en el rodaje</div>
+        <div class="inc-item"><div class="inc-dot"></div>1 camarógrafo (tú) · equipo propio</div>
+        <div class="inc-item"><div class="inc-dot"></div>Brief previo + propuesta de ángulos y planos</div>
+        <div class="inc-item"><div class="inc-dot"></div>Material en bruto entregado en Google Drive</div>
+        <div class="inc-item"><div class="inc-dot"></div>2 rondas de revisión en edición (si aplica)</div>
+      </div>
+
+      <!-- ADDONS -->
+      <div class="addon-list" onclick="event.stopPropagation()">
+        <div class="option-label" style="margin-top:12px;">Adicionales</div>
+        <div class="addon-item" onclick="toggleAddon(this,900000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Camarógrafo adicional (por jornada)</span><span class="addon-price" data-cop="900000">+$900.000</span></div>
+        <div class="addon-item" onclick="toggleAddon(this,700000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Drone / Fotografía aérea</span><span class="addon-price" data-cop="700000">+$700.000</span></div>
+        <div class="addon-item" onclick="toggleAddon(this,500000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Teleprompter + dirección de talento</span><span class="addon-price" data-cop="500000">+$500.000</span></div>
+        <div class="addon-item" onclick="toggleAddon(this,800000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Viáticos fuera de Bogotá</span><span class="addon-price" data-cop="800000">+desde $800.000</span></div>
+      </div>
+      <div class="service-note">Anticipo del 50% requerido para iniciar. Contrato digital obligatorio. Cada jornada adicional suma al precio base.</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end left col -->
+
+<!-- RESUMEN -->
+<div>
+  <div class="summary-card">
+    <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.3em;color:var(--accent);text-transform:uppercase;display:flex;align-items:center;gap:10px;margin-bottom:14px;"><span style="display:block;width:16px;height:1px;background:var(--accent);"></span>Resumen</div>
+    <div id="summary-content"><div class="summary-empty">← Selecciona servicios</div></div>
+    <div id="summary-total-section" style="display:none;">
+
+      <!-- TOTAL BASE -->
+      <div class="summary-total-section">
+        <div class="summary-total-label" id="total-label">Total estimado</div>
+        <div class="summary-total-amount" id="total-display">$0</div>
+        <div class="summary-total-sub" id="total-sub"></div>
+        <div class="total-in-other" id="total-other"></div>
+      </div>
+      <div id="discount-block" style="display:none;" class="discount-row">
+        <span class="discount-label">Descuento multi-servicio</span>
+        <span class="discount-badge" id="discount-pct"></span>
+      </div>
+
+      <!-- TOGGLE RECURRENTE -->
+      <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <span style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);">¿Cliente recurrente?</span>
+          <div style="display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:3px;overflow:hidden;">
+            <button id="rec-btn-no" onclick="setRecurrente(false)"
+              style="padding:5px 12px;font-family:'DM Mono',monospace;font-size:10px;border:none;background:var(--accent);color:var(--bg);cursor:pointer;transition:all .2s;">NO</button>
+            <button id="rec-btn-si" onclick="setRecurrente(true)"
+              style="padding:5px 12px;font-family:'DM Mono',monospace;font-size:10px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;transition:all .2s;">SÍ</button>
+          </div>
+        </div>
+
+        <!-- PANEL RECURRENTE -->
+        <div id="rec-panel" style="display:none;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+            <div class="option-group">
+              <label class="option-label">Meses de contrato</label>
+              <select id="rec-meses" onchange="updateRecurrente()">
+                <option value="2">2 meses</option>
+                <option value="3" selected>3 meses</option>
+                <option value="4">4 meses</option>
+                <option value="5">5 meses</option>
+                <option value="6">6 meses</option>
+                <option value="7">7 meses</option>
+                <option value="8">8 meses</option>
+                <option value="9">9 meses</option>
+                <option value="10">10 meses</option>
+                <option value="11">11 meses</option>
+                <option value="12">12 meses</option>
+                <option value="18">18 meses</option>
+                <option value="24">24 meses</option>
+              </select>
+            </div>
+            <div class="option-group">
+              <label class="option-label">Descuento mensual</label>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <input type="number" id="rec-descuento" value="8" min="0" max="40" oninput="updateRecurrente()"
+                  style="font-family:'DM Mono',monospace;text-align:center;">
+                <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);flex-shrink:0;">%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sugerencia de descuento -->
+          <div style="font-size:11px;color:var(--text-dim);font-style:italic;margin-bottom:10px;" id="rec-sugerencia"></div>
+
+          <!-- Desglose recurrente -->
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:12px;margin-bottom:10px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <span style="font-size:11px;color:var(--text-muted);">Precio normal/mes</span>
+              <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text);text-decoration:line-through;" id="rec-precio-normal">$0</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <span style="font-size:11px;color:var(--text-muted);">Precio especial/mes</span>
+              <span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--accent);font-weight:500;" id="rec-precio-mes">$0</span>
+            </div>
+            <div style="height:1px;background:var(--border);margin:8px 0;"></div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+              <span style="font-size:11px;color:var(--text-muted);" id="rec-total-label-line">Total contrato (3 meses)</span>
+              <span style="font-family:'DM Mono',monospace;font-size:14px;color:var(--green);font-weight:500;" id="rec-total-contrato">$0</span>
+            </div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--usd);" id="rec-ahorro-label"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOGGLE ENTREGABLES PERSONALIZADOS -->
+      <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <span style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);">¿Agregar entregables?</span>
+          <div style="display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:3px;overflow:hidden;">
+            <button id="del-btn-no" onclick="setEntregables(false)"
+              style="padding:5px 12px;font-family:'DM Mono',monospace;font-size:10px;border:none;background:var(--accent);color:var(--bg);cursor:pointer;transition:all .2s;">NO</button>
+            <button id="del-btn-si" onclick="setEntregables(true)"
+              style="padding:5px 12px;font-family:'DM Mono',monospace;font-size:10px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;transition:all .2s;">SÍ</button>
+          </div>
+        </div>
+        <div id="del-panel" style="display:none;">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;line-height:1.5;">Define los resultados o entregables que el cliente recibirá. Aparecen en el PDF como una sección separada.</div>
+          <div id="del-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
+          <button onclick="addEntregable()" style="width:100%;padding:8px;background:transparent;border:1px dashed var(--border);border-radius:2px;color:var(--text-muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;cursor:pointer;transition:all .2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">+ Agregar entregable</button>
+        </div>
+      </div>
+
+      <div class="viability-alert neutral" id="viability-msg">Configura tus finanzas para ver si este proyecto te alcanza.</div>
+      <button class="btn-pdf" onclick="openPreview()">Ver &amp; descargar PDF ↗</button>
+      <button class="btn-sec" onclick="goStep(2)">Editar datos del cliente</button>
+    </div>
+  </div>
+</div>
+</div><!-- end layout -->
+</div><!-- end panel3 -->
+
+<!-- ══ PANEL 4: FACTURAR ══ -->
+<div class="step-panel" id="panel4">
+  <div class="card">
+    <div class="card-title">Calculadora de facturación</div>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:20px;line-height:1.6;">¿Te van a pedir factura? Aquí calculas exactamente cuánto cobrar para que después de impuestos recibas lo que cotizaste.</p>
+
+    <div class="form-grid" style="margin-bottom:20px;">
+      <div class="form-group">
+        <label class="form-label">Valor neto a recibir (COP)</label>
+        <input type="number" id="fac-neto" placeholder="ej. 2000000" oninput="calcFactura()">
+        <span style="font-size:10px;color:var(--text-dim);margin-top:3px;">Lo que quieres que te llegue a la mano</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">¿Eres responsable de IVA?</label>
+        <select id="fac-iva" onchange="calcFactura()">
+          <option value="0">No — Régimen Simple / No responsable</option>
+          <option value="19">Sí — IVA 19%</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Retención en la fuente</label>
+        <select id="fac-rte" onchange="calcFactura()">
+          <option value="0">No aplica</option>
+          <option value="10">10% — Servicios en general</option>
+          <option value="11">11% — Honorarios persona natural</option>
+          <option value="3.5">3.5% — Contratos menores</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">ReteICA (si aplica)</label>
+        <select id="fac-retica" onchange="calcFactura()">
+          <option value="0">No aplica</option>
+          <option value="0.414">0.414% — Bogotá servicios</option>
+          <option value="0.966">0.966% — Bogotá publicidad</option>
+          <option value="0.7">0.7% — Otras ciudades</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="fac-result" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:20px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+        <div class="fin-stat"><span class="fin-stat-label">Base gravable</span><span class="fin-stat-value" id="fac-base">—</span></div>
+        <div class="fin-stat"><span class="fin-stat-label">IVA (si aplica)</span><span class="fin-stat-value" style="color:var(--text-muted);" id="fac-iva-val">—</span></div>
+        <div class="fin-stat"><span class="fin-stat-label">Retención en la fuente</span><span class="fin-stat-value red" id="fac-rte-val">—</span></div>
+        <div class="fin-stat"><span class="fin-stat-label">ReteICA</span><span class="fin-stat-value red" id="fac-retica-val">—</span></div>
+      </div>
+      <div style="height:1px;background:var(--border);margin-bottom:14px;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="fin-stat">
+          <span class="fin-stat-label">Total a facturar al cliente</span>
+          <span class="fin-stat-value accent" style="font-size:22px;" id="fac-total">—</span>
+          <span style="font-size:10px;color:var(--text-dim);margin-top:2px;" id="fac-total-usd"></span>
+        </div>
+        <div class="fin-stat">
+          <span class="fin-stat-label">Lo que recibes neto</span>
+          <span class="fin-stat-value green" style="font-size:22px;" id="fac-neto-real">—</span>
+          <span style="font-size:10px;color:var(--text-dim);margin-top:2px;">después de retenciones</span>
+        </div>
+      </div>
+      <div style="margin-top:14px;padding:10px;background:rgba(201,168,76,.06);border:1px dashed rgba(201,168,76,.3);border-radius:2px;font-size:11px;color:var(--text-muted);" id="fac-nota"></div>
+    </div>
+
+    <!-- TÉRMINOS Y CONDICIONES EDITABLES -->
+    <div style="margin-top:28px;">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;">Términos y condiciones del PDF</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Edita el texto que aparece al pie de cada cotización.</div>
+      <textarea id="terminos-es" rows="7" style="font-size:12px;line-height:1.7;">· Esta cotización es un estimado. El valor final puede ajustarse según el alcance definitivo del proyecto.
+· Se requiere anticipo del 50% para iniciar. El saldo se cancela al entregar los archivos finales.
+· Los precios no incluyen IVA. Si aplica factura electrónica, se suma el 19%.
+· Los archivos se entregan por Google Drive en la resolución pactada.
+· 2 rondas de revisión incluidas. Cambios adicionales se cotizan por separado.
+· Viáticos fuera de Bogotá no están incluidos salvo indicación explícita.
+· Validez de la cotización: 15 días hábiles.</textarea>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin:16px 0 8px;">English version — Terms & Conditions</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Appears in the English PDF version.</div>
+      <textarea id="terminos-en" rows="7" style="font-size:12px;line-height:1.7;">· This quote is an estimate. Final pricing may vary based on project scope.
+· A 50% deposit is required to start. The balance is due upon delivery of final files.
+· Prices do not include VAT/taxes. Invoice requirements may apply.
+· Files are delivered via Google Drive in the agreed resolution.
+· 2 revision rounds included. Additional changes are quoted separately.
+· Travel outside Bogotá is not included unless explicitly stated.
+· Quote validity: 15 business days.</textarea>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PANEL 5: HISTORIAL ══ -->
+<div class="step-panel" id="panel5">
+  <div class="card">
+    <div class="card-title">Historial de cotizaciones</div>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:20px;line-height:1.6;">Guarda las cotizaciones que generes para consultarlas después. Se almacenan en este navegador.</p>
+    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+      <button class="btn-pdf" style="width:auto;padding:10px 20px;" onclick="saveCurrentQuote()">Guardar cotización actual</button>
+      <button class="btn-sec" style="width:auto;padding:10px 20px;" onclick="clearHistory()">Limpiar historial</button>
+    </div>
+    <div id="history-list">
+      <div class="tracker-empty">No hay cotizaciones guardadas aún.</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- container -->
+
+<!-- MODAL PDF -->
+<div class="modal-overlay" id="modal-overlay" onclick="handleModalClick(event)">
+  <div class="modal-box" id="modal-box">
+    <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid #eee;position:sticky;top:0;background:#fff;z-index:10;">
+      <button onclick="closePreview()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#666;">✕</button>
+      <div style="flex:1;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#999;">Vista previa</div>
+      <button onclick="togglePDFLang()" id="lang-toggle" style="background:#f0ede0;border:1px solid #ddd;border-radius:2px;padding:5px 12px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;cursor:pointer;color:#666;">🌐 English</button>
+      <button onclick="openPresentation()" style="background:#1a1a1a;border:none;border-radius:2px;padding:6px 14px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;cursor:pointer;color:#c9a84c;">▶ Presentar</button>
+      <button onclick="printPDF()" style="background:#c9a84c;border:none;border-radius:2px;padding:6px 14px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;cursor:pointer;color:#fff;">⬇ PDF</button>
+    </div>
+    <div class="pdf-doc" id="pdf-content"></div>
+  </div>
+</div>
+
+<script>
+let currency = 'COP';
+let logoDataUrl = null;
+const quoteNum = Math.floor(Math.random()*900)+100;
+let trackerEntries = [];
+let extraEntries = [];
+let ugcMode = 'agencia';
+let ugcVideos = 1;
+
+// Film jornadas state
+let filmJornadas = 1;
+const PRECIO_JORNADA = 900000;
+const PRECIO_REEL = 350000;
+const PRECIO_HORA = 280000;   // tarifa senior ~$635k/día ÷ ~2.3 (factor evento)
+let filmEdicion = 0;
+let filmReels = 0;
+let filmMode    = 'jornadas';   // 'jornadas' | 'horas' | 'paquete'
+let filmHoras   = 1;
+// Entregables state
+let entregables  = [];
+let mostrarEntregables = false;
+
+// Pack selections per service
+const packValues = { foto:1200000, influencer:900000, realizador:1600000, ugc:650000, film:900000, edicion:120000 };
+
+function getTRM(){ return parseInt(document.getElementById('trm').value)||4100; }
+
+function setCurrency(c){
+  currency=c;
+  document.querySelectorAll('.currency-btn').forEach(b=>b.classList.toggle('active',b.textContent===c));
+  document.querySelectorAll('.addon-price').forEach(el=>{ el.textContent='+'+fmt(parseInt(el.dataset.cop)); });
+  document.querySelectorAll('.pack-pill-price').forEach(el=>{ el.textContent=fmt(parseInt(el.dataset.cop)); });
+  updateAll();
+}
+
+function fmt(cop){
+  if(currency==='COP') return '$'+cop.toLocaleString('es-CO');
+  return 'USD '+Math.round(cop/getTRM()).toLocaleString('en-US');
+}
+function fmtCOP(cop){ return '$'+cop.toLocaleString('es-CO'); }
+function fmtUSD(cop){ return 'USD '+Math.round(cop/getTRM()).toLocaleString('en-US'); }
+function fmtBoth(cop){
+  return currency==='COP'? '≈ '+fmtUSD(cop) : '≈ '+fmtCOP(cop);
+}
+
+function goStep(n){
+  [0,1,2,3,4,5].forEach(i=>{
+    const p=document.getElementById('panel'+i);
+    const t=document.getElementById('tab'+i);
+    if(p) p.classList.toggle('active',i===n);
+    if(t) t.classList.toggle('active',i===n);
+  });
+  if(n===5) renderHistory();
+}
+
+function handleLogo(input){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    logoDataUrl=e.target.result;
+    const img=document.getElementById('logo-preview-img');
+    img.src=logoDataUrl; img.style.display='block';
+    document.getElementById('logo-upload-text').textContent='Logo cargado ✓';
+  };
+  reader.readAsDataURL(file);
+}
+
+function selectPack(serviceId, el){
+  event.stopPropagation();
+  document.querySelectorAll('#'+serviceId+'-packs .pack-pill').forEach(p=>p.classList.remove('selected'));
+  el.classList.add('selected');
+  packValues[serviceId]=parseInt(el.dataset.value);
+  updateAll();
+}
+
+function toggleService(id){
+  const card=document.getElementById('card-'+id);
+  card.classList.toggle('active');
+  updateAll();
+}
+
+function toggleAddon(el,value){
+  el.classList.toggle('selected');
+  updateAll();
+}
+
+function getServiceTotal(id){
+  const card=document.getElementById('card-'+id);
+  if(!card||!card.classList.contains('active')) return 0;
+  let total=packValues[id]||0;
+  card.querySelectorAll('.addon-item.selected .addon-price').forEach(el=>{ total+=parseInt(el.dataset.cop)||0; });
+  return total;
+}
+
+function getPackName(id){
+  if(id==='edicion'){
+    if(edicionItems.length===0) return 'Sin ítems';
+    return edicionItems.map(i=>`${i.qty}× ${i.label}`).join(' + ');
+  }
+  if(id==='fotol'){
+    const nombre = document.getElementById('fotol-nombre')?.value||'Sesión libre';
+    return `${nombre} · ${fotolHoras}h sesión · ${fotolFotos} fotos ${fotolTipo}`;
+  }
+  if(id==='ugc' && ugcMode==='directo'){
+    const videos = ugcVideos;
+    const label = ugcDerechos
+      ? `${videos} video${videos>1?'s':''} · Creación + Derechos de pauta`
+      : `${videos} video${videos>1?'s':''} · Solo creación`;
+    return label;
+  }
+  const sel=document.querySelector('#'+id+'-packs .pack-pill.selected');
+  return sel? sel.querySelector('.pack-pill-name').textContent+' — '+sel.querySelector('.pack-pill-desc').textContent : '';
+}
+
+function getServiceAddons(id){
+  const card=document.getElementById('card-'+id); if(!card) return '';
+  const names=[];
+  card.querySelectorAll('.addon-item.selected .addon-name').forEach(el=>names.push(el.textContent.trim()));
+  return names.join(', ');
+}
+
+function getActiveIds(){
+  return ['foto','influencer','realizador','ugc','edicion','fotol','film'].filter(id=>{
+    const c=document.getElementById('card-'+id);
+    return c&&c.classList.contains('active');
+  });
+}
+
+function getServiceLabel(id){
+  return {foto:'Fotografía Editorial',influencer:'Contenido RRSS (Influencer)',realizador:'Contenido RRSS (Realizador)',ugc:'Contenido UGC',edicion:'Edición de Videos',fotol:'Fotografía — Sesión Libre',film:'Filmmaking / Eventos'}[id]||id;
+}
+
+function calcTotals(){
+  const ids=getActiveIds();
+  const raw=ids.reduce((s,id)=>s+getServiceTotal(id),0);
+  const pct=ids.length===2?5:ids.length===3?8:ids.length>=4?12:0;
+  const final=Math.round(raw*(1-pct/100));
+  return {ids,raw,pct,final};
+}
+
+/* ── FILMMAKING JORNADAS ── */
+function setFilmMode(mode){
+  filmMode = mode;
+  ['jornadas','horas','paquete'].forEach(m=>{
+    const btn   = document.getElementById('film-mode-'+m);
+    const panel = document.getElementById('film-panel-'+m);
+    const active = m===mode;
+    if(btn){
+      btn.style.background = active ? 'var(--accent)' : 'transparent';
+      btn.style.color      = active ? 'var(--bg)'     : 'var(--text-muted)';
+    }
+    if(panel) panel.style.display = active ? 'block' : 'none';
+  });
+  if(mode==='paquete') updatePaqueteEventos();
+  else updateFilmJornadas();
+}
+
+function changeHoras(delta){
+  filmHoras = Math.max(1, filmHoras + delta);
+  updateFilmJornadas();
+}
+
+function changeJornadas(delta){
+  filmJornadas = Math.max(1, filmJornadas + delta);
+  updateFilmJornadas();
+}
+
+function changeReels(delta){
+  filmReels = Math.max(0, filmReels + delta);
+  updateFilmJornadas();
+}
+
+function selectFilmEdicion(el, valor){
+  filmEdicion = valor;
+  document.querySelectorAll('#film-edicion-packs .pack-pill').forEach(p=>p.classList.remove('selected'));
+  el.classList.add('selected');
+  updateFilmJornadas();
+}
+
+// Paquete eventos — array of {label, horas}
+let paqEventosList = [{label:'Evento 1', horas:4}, {label:'Evento 2', horas:2}];
+
+function addPaqEvento(){
+  const n = paqEventosList.length + 1;
+  paqEventosList.push({label:`Evento ${n}`, horas:2});
+  renderPaqEventos();
+}
+
+function removePaqEvento(i){
+  if(paqEventosList.length <= 1) return;
+  paqEventosList.splice(i,1);
+  renderPaqEventos();
+}
+
+function updatePaqEvento(i, field, val){
+  if(paqEventosList[i]) paqEventosList[i][field] = field==='horas' ? Math.max(1,parseInt(val)||1) : val;
+  updatePaqueteEventos();
+}
+
+function changePaqEventoHoras(i, delta){
+  if(!paqEventosList[i]) return;
+  paqEventosList[i].horas = Math.max(1, paqEventosList[i].horas + delta);
+  renderPaqEventos();
+}
+
+function renderPaqEventos(){
+  const list = document.getElementById('paq-eventos-list');
+  if(!list) return;
+  list.innerHTML = paqEventosList.map((ev,i)=>`
+    <div style="display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:8px 10px;">
+      <input type="text" value="${ev.label}"
+        oninput="updatePaqEvento(${i},'label',this.value)"
+        style="flex:1;font-size:12px;padding:4px 6px;background:var(--surface);border:1px solid var(--border);border-radius:2px;color:var(--text);outline:none;min-width:0;">
+      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+        <button class="qty-btn" style="width:24px;height:24px;font-size:14px;" onclick="event.stopPropagation();changePaqEventoHoras(${i},-1)">−</button>
+        <span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--accent);min-width:18px;text-align:center;">${ev.horas}</span>
+        <button class="qty-btn" style="width:24px;height:24px;font-size:14px;" onclick="event.stopPropagation();changePaqEventoHoras(${i},1)">+</button>
+        <span style="font-size:10px;color:var(--text-dim);">h · ${fmtCOP(ev.horas*PRECIO_HORA)}</span>
+      </div>
+      ${paqEventosList.length>1?`<button onclick="event.stopPropagation();removePaqEvento(${i})" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:16px;padding:0 2px;flex-shrink:0;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-dim)'">×</button>`:''}
+    </div>`).join('');
+  updatePaqueteEventos();
+}
+
+function updatePaqueteEventos(){
+  const n = paqEventosList.length;
+  const totalHoras = paqEventosList.reduce((s,e)=>s+e.horas, 0);
+  const precioSin  = totalHoras * PRECIO_HORA;
+
+  // Descuento según cantidad de eventos
+  const desc = n>=10?25 : n>=6?18 : n>=4?12 : n>=2?8 : 0;
+  const descuento  = Math.round(precioSin * desc/100);
+  const total      = precioSin - descuento;
+
+  packValues['film'] = total;
+
+  document.getElementById('paq-precio-sin').textContent   = fmt(precioSin);
+  document.getElementById('paq-desc-label').textContent   = `Descuento paquete (${n} eventos · −${desc}%)`;
+  document.getElementById('paq-desc-valor').textContent   = `−${fmt(descuento)}`;
+  document.getElementById('paq-total-label').textContent  = `Total paquete (${n} eventos)`;
+  document.getElementById('paq-total-display').textContent = fmt(total);
+  document.getElementById('paq-por-evento').textContent   =
+    `${totalHoras}h totales · promedio ${fmt(Math.round(total/n))} por evento`;
+
+  document.getElementById('film-subtotal-display').textContent = fmt(total);
+  document.getElementById('film-sub-rodaje').textContent = fmt(total);
+  document.getElementById('film-base-display').textContent = fmt(PRECIO_HORA);
+  updateAll();
+}
+
+/* ── ENTREGABLES ── */
+function setEntregables(val){
+  mostrarEntregables = val;
+  document.getElementById('del-btn-no').style.background = !val ? 'var(--accent)' : 'transparent';
+  document.getElementById('del-btn-no').style.color      = !val ? 'var(--bg)'     : 'var(--text-muted)';
+  document.getElementById('del-btn-si').style.background = val  ? 'var(--accent)' : 'transparent';
+  document.getElementById('del-btn-si').style.color      = val  ? 'var(--bg)'     : 'var(--text-muted)';
+  document.getElementById('del-panel').style.display = val ? 'block' : 'none';
+  if(val && entregables.length===0) addEntregable();
+}
+
+function addEntregable(){
+  entregables.push({ label:'', value:'' });
+  renderEntregables();
+}
+
+function removeEntregable(i){
+  entregables.splice(i,1);
+  renderEntregables();
+}
+
+function updateEntregable(i, field, val){
+  if(entregables[i]) entregables[i][field] = val;
+}
+
+function renderEntregables(){
+  const list = document.getElementById('del-list');
+  if(!list) return;
+  if(entregables.length===0){ list.innerHTML=''; return; }
+  list.innerHTML = entregables.map((e,i)=>`
+    <div style="display:flex;gap:6px;align-items:center;">
+      <input type="text" placeholder="ej. Reels entregados" value="${e.label}"
+        oninput="updateEntregable(${i},'label',this.value)"
+        style="flex:1;font-size:12px;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;color:var(--text);outline:none;">
+      <input type="text" placeholder="ej. 8 piezas" value="${e.value}"
+        oninput="updateEntregable(${i},'value',this.value)"
+        style="width:90px;font-size:12px;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;color:var(--accent);font-family:'DM Mono',monospace;outline:none;text-align:right;">
+      <button onclick="removeEntregable(${i})" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:16px;padding:0 4px;flex-shrink:0;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-dim)'">×</button>
+    </div>`).join('');
+}
+
+function calcReelsCosto(n){
+  // Descuentos por volumen: 1–2 precio normal · 3–5 -10% · 6+ -20%
+  if(n===0) return 0;
+  const descuento = n>=6 ? 0.20 : n>=3 ? 0.10 : 0;
+  return Math.round(n * PRECIO_REEL * (1 - descuento));
+}
+
+function updateFilmJornadas(){
+  if(filmMode === 'paquete'){ updatePaqueteEventos(); return; }
+  let rodaje = 0;
+
+  if(filmMode === 'jornadas'){
+    rodaje = filmJornadas * PRECIO_JORNADA;
+    document.getElementById('film-jornadas-num').textContent = filmJornadas;
+    document.getElementById('film-jornadas-precio').textContent = fmt(rodaje);
+    document.getElementById('film-jornadas-horas').textContent =
+      `hasta ${filmJornadas*4}h · ${filmJornadas} jornada${filmJornadas>1?'s':''} · 1 camarógrafo`;
+    const notas = {
+      1:'1 jornada (4h): lanzamientos, foros, charlas o actos cortos.',
+      2:'2 jornadas (8h): cobertura de día completo. Eventos medianos, congresos.',
+      3:'3 jornadas (12h): evento largo o dos días parciales. Incluye traslados.',
+      4:'4 jornadas (16h): 2 días completos. Se requiere contrato formal.',
+    };
+    document.getElementById('film-jornadas-nota').textContent =
+      notas[filmJornadas]||`${filmJornadas} jornadas (${filmJornadas*4}h): producción extendida. Contrato y anticipo requeridos.`;
+
+  } else {
+    rodaje = filmHoras * PRECIO_HORA;
+    document.getElementById('film-horas-num').textContent = filmHoras;
+    document.getElementById('film-horas-precio').textContent = fmt(rodaje);
+    document.getElementById('film-horas-label').textContent =
+      `${filmHoras} hora${filmHoras>1?'s':''} · ${fmt(PRECIO_HORA)}/h`;
+
+    // Nota contextual por horas
+    let nota = '';
+    if(filmHoras === 1)      nota = '1 hora: cobertura puntual, acto de protocolo o apertura de evento.';
+    else if(filmHoras === 2) nota = '2 horas: cobertura de panel, coctel o rueda de prensa.';
+    else if(filmHoras === 3) nota = '3 horas: evento mediano. Considera si quieres agregar edición.';
+    else                     nota = `${filmHoras} horas · a partir de 4h una jornada completa ($900.000) puede convenir más.`;
+    document.getElementById('film-horas-nota').textContent = nota;
+
+    // Sugerencia de jornada si llega a 4h o más
+    const sug = document.getElementById('film-horas-sugerencia');
+    if(sug) sug.style.display = filmHoras >= 4 ? 'block' : 'none';
+  }
+
+  const reelsCosto = calcReelsCosto(filmReels);
+  const total = rodaje + filmEdicion + reelsCosto;
+  packValues['film'] = total;
+
+  // Reels
+  document.getElementById('film-reels-num').textContent = filmReels;
+  let reelsLabel = '$0';
+  if(filmReels > 0){
+    const desc = filmReels>=6?20 : filmReels>=3?10 : 0;
+    reelsLabel = fmt(reelsCosto) + (desc>0 ? ` (−${desc}%)` : '');
+  }
+  document.getElementById('film-reels-precio').textContent = reelsLabel;
+
+  let reelsHint = '$350.000 por Reel · color + música + subtítulos';
+  if(filmReels>=6)      reelsHint = '6+ Reels · −20% aplicado 🎉';
+  else if(filmReels>=3) reelsHint = '3–5 Reels · −10% aplicado';
+  const hintEl = document.getElementById('film-reels-hint');
+  if(hintEl) hintEl.textContent = reelsHint;
+
+  // Subtotal breakdown
+  document.getElementById('film-sub-rodaje').textContent = fmt(rodaje);
+  document.getElementById('film-sub-edicion').textContent = fmt(filmEdicion);
+  const reelsRowEl = document.getElementById('film-sub-reels-row');
+  if(reelsRowEl) reelsRowEl.style.display = filmReels>0 ? 'flex' : 'none';
+  const reelsEl = document.getElementById('film-sub-reels');
+  if(reelsEl) reelsEl.textContent = fmt(reelsCosto);
+  document.getElementById('film-subtotal-display').textContent = fmt(total);
+  document.getElementById('film-base-display').textContent = fmt(PRECIO_JORNADA);
+
+  updateAll();
+}
+
+/* ── UGC MODE ── */
+function setUGCMode(mode){
+  ugcMode = mode;
+  document.getElementById('ugc-panel-agencia').style.display = mode==='agencia'?'block':'none';
+  document.getElementById('ugc-panel-directo').style.display = mode==='directo'?'block':'none';
+  document.getElementById('ugc-mode-agencia').style.background = mode==='agencia'?'var(--accent)':'transparent';
+  document.getElementById('ugc-mode-agencia').style.color = mode==='agencia'?'var(--bg)':'var(--text-muted)';
+  document.getElementById('ugc-mode-directo').style.background = mode==='directo'?'var(--accent)':'transparent';
+  document.getElementById('ugc-mode-directo').style.color = mode==='directo'?'var(--bg)':'var(--text-muted)';
+  if(mode==='directo') calcUGCDirecto();
+  updateAll();
+}
+
+let ugcDerechos = false;
+
+function setUGCDerechos(val){
+  ugcDerechos = val;
+  const btnNo = document.getElementById('ugc-der-no');
+  const btnSi = document.getElementById('ugc-der-si');
+  const panel = document.getElementById('ugc-derechos-panel');
+  const lineEl = document.getElementById('ugc-derechos-line');
+  if(btnNo){ btnNo.style.background = !val?'var(--accent)':'transparent'; btnNo.style.color = !val?'var(--bg)':'var(--text-muted)'; }
+  if(btnSi){ btnSi.style.background = val?'var(--accent)':'transparent'; btnSi.style.color = val?'var(--bg)':'var(--text-muted)'; }
+  if(panel) panel.style.display = val?'block':'none';
+  if(lineEl) lineEl.style.display = val?'flex':'none';
+  calcUGCDirecto();
+}
+
+function calcUGCDirecto(){
+  const seg      = parseInt(document.getElementById('ugc-seguidores').value)||3104;
+  const tarifaBase = parseInt(document.getElementById('ugc-tarifa-base')?.value||150);
+  const base     = seg * tarifaBase;
+  const prod     = Math.round(base * 0.5);
+  const creacion = base + prod;
+
+  // Derechos de pauta (solo si está activo)
+  const licEl    = document.getElementById('ugc-licencia-tipo');
+  const tarifaDer = licEl ? parseInt(licEl.value)||100 : 100;
+  const derechosPorVideo = ugcDerechos ? seg * tarifaDer : 0;
+
+  // Update displays
+  const setEl = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=fmtCOP(val); };
+  setEl('ugc-precio-base', base);
+  setEl('ugc-precio-prod', prod);
+  setEl('ugc-precio-creacion', creacion);
+  setEl('ugc-precio-derechos', derechosPorVideo);
+
+  // Pills — creación sola
+  setEl('ugc-p1', creacion);
+  setEl('ugc-p3', creacion*3);
+  setEl('ugc-p6', Math.round(creacion*6*0.9));
+
+  // Totals based on selected videos
+  const totalCreacion = creacion * ugcVideos;
+  const retainerDisc = ugcVideos===6 ? 0.9 : 1;
+  const totalCreacionFinal = Math.round(creacion * ugcVideos * retainerDisc);
+  const totalDerechos = derechosPorVideo * ugcVideos;
+  const total = totalCreacionFinal + totalDerechos;
+
+  setEl('ugc-sub-creacion', totalCreacionFinal);
+  setEl('ugc-sub-derechos', totalDerechos);
+  setEl('ugc-total-creacion-line', totalCreacionFinal);
+  setEl('ugc-total-derechos-line', totalDerechos);
+  setEl('ugc-precio-total', total);
+
+  // Label
+  const lblEl = document.getElementById('ugc-total-label');
+  if(lblEl) lblEl.textContent = ugcDerechos ? 'Total creación + derechos' : 'Total creación';
+
+  packValues['ugc'] = total;
+  updateAll();
+}
+
+function selectUGCVideos(el, qty){
+  event.stopPropagation();
+  ugcVideos = qty;
+  document.querySelectorAll('#ugc-packs .pack-pill').forEach(p=>p.classList.remove('selected'));
+  el.classList.add('selected');
+  calcUGCDirecto();
+}
+
+function updateUGCAgencia(){
+  const val = parseInt(document.getElementById('ugc-agencia-precio').value)||0;
+  packValues['ugc'] = val;
+  const vEl = document.getElementById('ugc-agencia-viability');
+  if(val>0 && vEl){
+    vEl.style.display='block';
+    if(val >= 600000){
+      vEl.className='viability-alert good'; vEl.textContent=`✓ Buen precio para UGC. Equivale a ~${Math.round(val/270000*8)} horas de trabajo tuyo.`;
+    } else if(val >= 350000){
+      vEl.className='viability-alert neutral'; vEl.textContent=`Precio bajo pero aceptable si el proyecto es rápido (menos de 1 día de trabajo).`;
+    } else {
+      vEl.className='viability-alert warn'; vEl.textContent=`⚠ Precio muy bajo. Con tu costo de día real, no te compensa a menos que sea menos de 2 horas de trabajo.`;
+    }
+  } else if(vEl){ vEl.style.display='none'; }
+  updateAll();
+}
+
+/* ── EXTRAS ── */
+function addExtraEntry(){
+  const name = prompt('¿De dónde viene este ingreso?');
+  if(!name) return;
+  const amtStr = prompt('Valor (solo números):');
+  const amount = parseInt(amtStr);
+  if(!amount||isNaN(amount)) return;
+  extraEntries.push({name,amount});
+  updateTracker();
+}
+
+function removeExtraEntry(i){
+  extraEntries.splice(i,1);
+  updateTracker();
+}
+
+/* ── FINANZAS ── */
+function updateFinance(){
+  const fijo    = parseInt(document.getElementById('fin-fijo').value)   || 1300000;
+  const esposa  = parseInt(document.getElementById('fin-esposa').value) || 3200000;
+  const hogar   = parseInt(document.getElementById('fin-hogar').value)  || 5000000;
+  const meta    = parseInt(document.getElementById('fin-meta').value)   || 3500000;
+  const gastos  = parseInt(document.getElementById('fin-gastos').value) || 1000000;
+  const ahorro  = parseInt(document.getElementById('fin-ahorro').value) || 350000;
+  const dias    = parseInt(document.getElementById('fin-dias').value)   || 12;
+
+  const totalFijo = fijo + esposa;
+  const deficit   = hogar - totalFijo; // can be negative (surplus)
+
+  // Lo que necesitas generar con tu negocio freelance
+  const metaFreelance = Math.max(0, deficit) + meta + gastos + ahorro - fijo;
+  // deficit cubierto por freelance (lo que falta del hogar) + meta personal + operativo + ahorro - ya cuentas tu fijo
+  // Simplificado: necesitas = meta + gastos_negocio + ahorro + max(0,deficit_hogar)
+  const necesito = meta + gastos + ahorro + Math.max(0, deficit);
+
+  const porDia    = Math.round(necesito / dias);
+  const porDiaRec = Math.round(porDia * 2.5); // senior multiplier
+
+  document.getElementById('fin-total-fijo').textContent = fmtCOP(totalFijo);
+
+  const defEl = document.getElementById('fin-deficit');
+  if (deficit <= 0) {
+    defEl.textContent = '+' + fmtCOP(Math.abs(deficit));
+    defEl.className = 'fin-stat-value green';
+  } else {
+    defEl.textContent = '−' + fmtCOP(deficit);
+    defEl.className = 'fin-stat-value red';
+  }
+
+  document.getElementById('fin-necesito').textContent = fmtCOP(necesito);
+  document.getElementById('fin-dia').textContent      = fmtCOP(porDia);
+  document.getElementById('fin-dia-rec').textContent  = fmtCOP(porDiaRec);
+
+  // Consejo contextual
+  const consejo = document.getElementById('fin-consejo');
+  const proyectosNecesarios = Math.ceil(necesito / 1800000);
+  if (deficit <= 0) {
+    consejo.textContent = `Tu hogar ya está cubierto con los ingresos fijos — ¡superávit de ${fmtCOP(Math.abs(deficit))}! Tu negocio es puro crecimiento y calidad de vida. Con 2–3 proyectos medianos al mes llegas cómodo.`;
+  } else if (necesito < 2000000) {
+    consejo.textContent = `Tu meta es alcanzable con 1–2 proyectos bien pagados al mes. No necesitas llenarte de clientes — necesitas los correctos.`;
+  } else {
+    consejo.textContent = `Con tu tarifa recomendada de ${fmtCOP(porDiaRec)}/día, necesitas aproximadamente ${proyectosNecesarios} proyectos medianos al mes para llegar a tu meta.`;
+  }
+
+  updateTracker();
+}
+
+function getNecesito(){
+  const fijo   = parseInt(document.getElementById('fin-fijo').value)   || 1300000;
+  const esposa = parseInt(document.getElementById('fin-esposa').value) || 3200000;
+  const hogar  = parseInt(document.getElementById('fin-hogar').value)  || 5000000;
+  const meta   = parseInt(document.getElementById('fin-meta').value)   || 3500000;
+  const gastos = parseInt(document.getElementById('fin-gastos').value) || 1000000;
+  const ahorro = parseInt(document.getElementById('fin-ahorro').value) || 350000;
+  const deficit = Math.max(0, hogar - fijo - esposa);
+  return meta + gastos + ahorro + deficit;
+}
+
+function updateTracker(){
+  const necesito = getNecesito();
+  const totalTracked = trackerEntries.reduce((s,e)=>s+e.amount,0);
+  const totalExtras  = extraEntries.reduce((s,e)=>s+e.amount,0);
+  const totalMes     = totalTracked + totalExtras;
+
+  document.getElementById('tracker-total').textContent     = fmtCOP(totalTracked);
+  const extEl = document.getElementById('extras-total');
+  if(extEl) extEl.textContent = fmtCOP(totalExtras);
+  const rFree = document.getElementById('resumen-freelance');
+  if(rFree) rFree.textContent = fmtCOP(totalTracked);
+  const rExt = document.getElementById('resumen-extras');
+  if(rExt) rExt.textContent = fmtCOP(totalExtras);
+  const rTot = document.getElementById('resumen-total');
+  if(rTot) rTot.textContent = fmtCOP(totalMes);
+
+  const faltaEl = document.getElementById('tracker-falta');
+  const falta = necesito - totalMes;
+  if(faltaEl){
+    if(falta>0){ faltaEl.textContent=`· faltan ${fmtCOP(falta)}`; faltaEl.style.color='var(--text-dim)'; }
+    else { faltaEl.textContent='· ¡meta del mes cumplida! 🎉'; faltaEl.style.color='var(--green)'; }
+  }
+
+  const pct = necesito>0 ? Math.min(100,Math.round(totalMes/necesito*100)) : 100;
+  document.getElementById('health-pct').textContent = pct+'%';
+  const bar = document.getElementById('health-bar');
+  bar.style.width = pct+'%';
+  bar.style.background = pct>=100?'var(--green)':pct>=60?'var(--accent)':'var(--red)';
+
+  // Extras list
+  const extList = document.getElementById('extras-list');
+  if(extList){
+    if(extraEntries.length===0){
+      extList.innerHTML='<div class="tracker-empty">Ningún ingreso extra registrado aún.</div>';
+    } else {
+      extList.innerHTML=extraEntries.map((e,i)=>`
+        <div class="tracker-row">
+          <span style="flex:1;color:var(--text);">${e.name}</span>
+          <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--usd);">${fmtCOP(e.amount)}</span>
+          <button class="tracker-del" onclick="removeExtraEntry(${i})">×</button>
+        </div>`).join('');
+    }
+  }
+
+  // Freelance list
+  const list = document.getElementById('tracker-list');
+  if(trackerEntries.length===0){
+    list.innerHTML='<div class="tracker-empty">Aún no has registrado proyectos este mes.</div>';
+  } else {
+    list.innerHTML=trackerEntries.map((e,i)=>`
+      <div class="tracker-row">
+        <span style="flex:1;color:var(--text);">${e.name}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);">${fmtCOP(e.amount)}</span>
+        <button class="tracker-del" onclick="removeTrackerEntry(${i})">×</button>
+      </div>`).join('');
+  }
+  updateViability();
+}
+
+function addTrackerEntry(){
+  const name=prompt('Nombre del proyecto / cliente:');
+  if(!name) return;
+  const amtStr=prompt('Valor cobrado (solo números, sin puntos ni comas):');
+  const amount=parseInt(amtStr);
+  if(!amount||isNaN(amount)) return;
+  trackerEntries.push({name,amount});
+  updateTracker();
+}
+
+function removeTrackerEntry(i){
+  trackerEntries.splice(i,1);
+  updateTracker();
+}
+
+function updateViability(){
+  const necesito = getNecesito();
+  const totalTracked = trackerEntries.reduce((s,e)=>s+e.amount,0);
+  const totalExtras  = extraEntries.reduce((s,e)=>s+e.amount,0);
+  const {final} = calcTotals();
+  const msg = document.getElementById('viability-msg');
+  if(!msg) return;
+  if(final===0){ msg.className='viability-alert neutral'; msg.textContent='Configura tus finanzas y selecciona servicios para ver si este proyecto te alcanza.'; return; }
+
+  const proyectado = totalTracked + totalExtras + final;
+  if(necesito===0){
+    msg.className='viability-alert good';
+    msg.textContent='✓ Tus ingresos fijos cubren el hogar. Todo lo que factures es crecimiento puro.';
+  } else if(proyectado>=necesito){
+    const exceso = proyectado - necesito;
+    msg.className='viability-alert good';
+    msg.textContent=`✓ Con este proyecto llegas a tu meta. Superávit de ${fmtCOP(exceso)} este mes.`;
+  } else {
+    const falta = necesito - proyectado;
+    msg.className='viability-alert warn';
+    msg.textContent=`⚠ Con este proyecto te faltan ${fmtCOP(falta)} para tu meta del mes.`;
+  }
+}
+
+function updateAll(){
+  const bases={foto:1200000,influencer:900000,realizador:1600000,ugc:650000,edicion:120000,fotol:680000,film:PRECIO_JORNADA};
+  Object.entries(bases).forEach(([id,p])=>{ const el=document.getElementById(id+'-base-display'); if(el) el.textContent=fmt(p); });
+  document.querySelectorAll('.addon-price').forEach(el=>{ el.textContent='+'+fmt(parseInt(el.dataset.cop)); });
+  // Only update pack-pill prices that aren't inside the film edicion packs (those are static COP labels)
+  document.querySelectorAll('.pack-pill-price[data-cop]').forEach(el=>{
+    const cop=parseInt(el.dataset.cop);
+    if(!isNaN(cop)) el.textContent=fmt(cop);
+  });
+
+  const {ids,raw,pct,final}=calcTotals();
+
+  if(ids.length===0){
+    document.getElementById('summary-content').innerHTML='<div class="summary-empty">← Selecciona servicios</div>';
+    document.getElementById('summary-total-section').style.display='none';
+    return;
+  }
+
+  let html='';
+  ids.forEach(id=>{
+    const amt=getServiceTotal(id);
+    html+=`<div class="summary-line"><div class="summary-service-name">${getServiceLabel(id)}<small>${getPackName(id).split('—')[0].trim()}</small></div><div class="summary-price">${fmt(amt)}</div></div>`;
+  });
+
+  document.getElementById('summary-content').innerHTML=html;
+  document.getElementById('summary-total-section').style.display='block';
+  document.getElementById('total-display').textContent=fmt(final);
+  document.getElementById('total-sub').textContent=currency==='COP'?'Pesos colombianos':'Dólares americanos';
+  document.getElementById('total-other').textContent=fmtBoth(final);
+
+  const db=document.getElementById('discount-block');
+  if(pct>0){ db.style.display='flex'; document.getElementById('discount-pct').textContent=`−${pct}%`; }
+  else db.style.display='none';
+
+  // Reset total label when not recurrent
+  const lbl = document.getElementById('total-label');
+  if(lbl && !esRecurrente) lbl.textContent = 'Total estimado';
+  if(esRecurrente) updateRecurrente();
+
+  updateViability();
+}
+
+function openPreview(){
+  const {ids,raw,pct,final}=calcTotals();
+  if(ids.length===0){ alert('Selecciona al menos un servicio.'); return; }
+
+  const isEn = pdfLang==='en';
+  const myName=document.getElementById('my-name').value||'Realizador Audiovisual';
+  const myTagline=document.getElementById('my-tagline').value||'Bogotá, Colombia';
+  const myEmail=document.getElementById('my-email').value;
+  const myPhone=document.getElementById('my-phone').value;
+  const myIg=document.getElementById('my-ig').value;
+  const myWeb=document.getElementById('my-web').value;
+  const customNum=document.getElementById('my-quote-num').value;
+  const displayNum = customNum ? customNum : quoteNum;
+
+  const clName=document.getElementById('cl-name').value||'—';
+  const clEmpresa=document.getElementById('cl-empresa').value;
+  const clEmail=document.getElementById('cl-email').value;
+  const clPhone=document.getElementById('cl-phone').value;
+  const clNit=document.getElementById('cl-nit').value;
+  const clCiudad=document.getElementById('cl-ciudad').value;
+  const clNotas=document.getElementById('cl-notas').value;
+
+  const locale = isEn ? 'en-US' : 'es-CO';
+  const today=new Date().toLocaleDateString(locale,{day:'numeric',month:'long',year:'numeric'});
+  const validity=new Date(); validity.setDate(validity.getDate()+15);
+  const validStr=validity.toLocaleDateString(locale,{day:'numeric',month:'long',year:'numeric'});
+
+  const logoHtml=logoDataUrl
+    ?`<img class="pdf-logo-img" src="${logoDataUrl}" alt="Logo">`
+    :`<div style="width:60px;height:36px;background:#f0ede0;border-radius:2px;display:flex;align-items:center;justify-content:center;"><span style="font-size:9px;color:#bbb;font-family:monospace;">LOGO</span></div>`;
+
+  const contactLines=[myEmail,myPhone,myIg,myWeb].filter(Boolean);
+  const clDetails=[clEmpresa,clEmail,clPhone,clNit?(isEn?'Tax ID: ':'NIT/CC: ')+clNit:'',clCiudad].filter(Boolean);
+
+  let servicesHtml='';
+  ids.forEach(id=>{
+    const amt=getServiceTotal(id);
+    const packName=getPackName(id);
+    const addons=getServiceAddons(id);
+    const card=document.getElementById('card-'+id);
+    const includeItems=[];
+    card.querySelectorAll('.inc-item').forEach(el=>includeItems.push(el.textContent.trim()));
+    const includesHtml=includeItems.length?`<div class="pdf-service-includes">${includeItems.map(i=>`<span>✓ ${i}</span>`).join('')}</div>`:'';
+    servicesHtml+=`
+      <div class="pdf-service-row">
+        <div class="pdf-service-info">
+          <div class="pdf-service-name">${getServiceLabel(id)}</div>
+          <div class="pdf-service-detail">${packName}</div>
+          ${id==='ugc'&&ugcMode==='directo'&&ugcDerechos?`
+            <div style="margin-top:6px;display:flex;flex-direction:column;gap:2px;">
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:#888;">
+                <span>Creación (${ugcVideos} video${ugcVideos>1?'s':''})</span>
+                <span style="font-family:'DM Mono',monospace;">${fmtCOP(parseInt(document.getElementById('ugc-sub-creacion')?.textContent?.replace(/\D/g,'')||0))}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:#888;">
+                <span>Derechos de pauta</span>
+                <span style="font-family:'DM Mono',monospace;">${document.getElementById('ugc-sub-derechos')?.textContent||'$0'}</span>
+              </div>
+            </div>`:''}
+          ${includesHtml}
+          ${addons?`<div class="pdf-service-addons">+ ${isEn?'Add-ons':'Adicionales'}: ${addons}</div>`:''}
+        </div>
+        <div class="pdf-service-price">${fmtCOP(amt)}<br><span style="font-size:10px;color:#aaa;">${fmtUSD(amt)}</span></div>
+      </div>`;
+  });
+
+  const discountHtml=pct>0?`
+    <div class="pdf-subtotal-row"><span>${isEn?'Subtotal':'Subtotal'}</span><span>${fmtCOP(raw)}</span></div>
+    <div class="pdf-discount-row"><span>${isEn?`Multi-service discount (${pct}%)`:`Descuento multi-servicio (${pct}%)`}</span><span>− ${fmtCOP(raw-final)}</span></div>`:'';
+
+  // Calcular precio final real (con descuento de recurrencia si aplica)
+  const mesesRec = esRecurrente ? (parseInt(document.getElementById('rec-meses').value)||3) : 0;
+  const descRec  = esRecurrente ? (parseFloat(document.getElementById('rec-descuento').value)||8) : 0;
+  const precioMes = esRecurrente ? Math.round(final*(1-descRec/100)) : final;
+  const anticipo = Math.round(precioMes*0.5);
+  const pdfTotal = precioMes; // Lo que aparece como total principal en el PDF
+
+  // Entregables block for PDF
+  let entregablesHtml = '';
+  if(mostrarEntregables && entregables.filter(e=>e.label||e.value).length > 0){
+    const rows = entregables.filter(e=>e.label||e.value).map(e=>`
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee;">
+        <span style="font-size:12px;color:#555;">${e.label||'—'}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:12px;color:#c9a84c;font-weight:500;">${e.value||'—'}</span>
+      </div>`).join('');
+    entregablesHtml = `
+      <div style="margin-top:20px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:#999;margin-bottom:10px;">${isEn?'Deliverables':'Entregables del proyecto'}</div>
+        ${rows}
+      </div>`;
+  }
+  let recurrenteHtml = '';
+  if(esRecurrente){
+    const totalContrato = precioMes * mesesRec;
+    const ahorro        = (final * mesesRec) - totalContrato;
+    recurrenteHtml = `
+      <div style="margin-top:20px;background:#f7f5f0;border-left:3px solid #3a7a5a;padding:16px 20px;border-radius:0 2px 2px 0;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:#3a7a5a;margin-bottom:10px;">${isEn?'Recurring contract':'Contrato recurrente'}</div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:12px;">
+          <span style="color:#666;">${isEn?'Regular price/month':'Precio regular/mes'}</span>
+          <span style="color:#aaa;text-decoration:line-through;">${fmtCOP(final)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;">
+          <span style="color:#333;font-weight:500;">${isEn?'Special price/month':'Precio especial/mes'} <span style="font-family:'DM Mono',monospace;font-size:10px;color:#3a7a5a;background:#e8f4ee;padding:1px 6px;border-radius:2px;">−${descRec}%</span></span>
+          <span style="font-family:'DM Mono',monospace;color:#1a1a1a;font-size:15px;font-weight:600;">${fmtCOP(precioMes)}</span>
+        </div>
+        <div style="height:1px;background:#e0ddd6;margin:10px 0;"></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;">
+          <span style="color:#333;font-weight:500;">${isEn?`Total contract (${mesesRec} months)`:`Total contrato (${mesesRec} mes${mesesRec>1?'es':''})`}</span>
+          <span style="font-family:'DM Mono',monospace;font-size:16px;color:#3a7a5a;font-weight:600;">${fmtCOP(totalContrato)}</span>
+        </div>
+        <div style="margin-top:6px;font-family:'DM Mono',monospace;font-size:10px;color:#888;">${isEn?`Client saves ${fmtCOP(ahorro)} vs regular pricing`:`El cliente ahorra ${fmtCOP(ahorro)} vs precio normal`}</div>
+      </div>`;
+  }
+
+  // Custom terms from textarea
+  const terminosRaw = isEn
+    ? (document.getElementById('terminos-en')?.value||'')
+    : (document.getElementById('terminos-es')?.value||'');
+  const terminosHtml = terminosRaw.split('\n').filter(l=>l.trim()).map(l=>`${l}<br>`).join('');
+
+  const langBadge = isEn ? `<div style="display:inline-block;background:#f0ede0;border:1px solid #ddd;border-radius:2px;padding:2px 8px;font-family:'DM Mono',monospace;font-size:9px;color:#999;margin-left:10px;letter-spacing:.1em;">EN</div>` : '';
+
+  document.getElementById('pdf-content').innerHTML=`
+    <div class="pdf-header">
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        ${logoHtml}
+        <div class="pdf-my-name">${myName}${langBadge}</div>
+        <div class="pdf-my-tagline">${myTagline}</div>
+        ${contactLines.length?`<div class="pdf-my-contact">${contactLines.join(' · ')}</div>`:''}
+      </div>
+      <div class="pdf-meta">
+        <div class="pdf-quote-label">${isEn?'Quote':'Cotización'}</div>
+        <div class="pdf-quote-num">#${displayNum}</div>
+        <div class="pdf-date">${isEn?'Date':'Fecha'}: ${today}</div>
+      </div>
+    </div>
+    <div class="pdf-client-section">
+      <div class="pdf-client-label">${isEn?'Prepared for':'Preparado para'}</div>
+      <div class="pdf-client-name">${clName}</div>
+      ${clDetails.length?`<div class="pdf-client-detail">${clDetails.join(' · ')}</div>`:''}
+      ${clNotas?`<div class="pdf-client-notes"><strong>${isEn?'Brief':'Brief'}:</strong> ${clNotas}</div>`:''}
+    </div>
+    <div class="pdf-services-title">${isEn?'Service breakdown':'Detalle de servicios'}</div>
+    ${servicesHtml}
+    ${entregablesHtml}
+    <div class="pdf-totals">
+      ${discountHtml}
+      <div class="pdf-total-row">
+        <span class="pdf-total-label">${esRecurrente?(isEn?'Special price / month':'Precio especial / mes'):(isEn?'Estimated total':'Total estimado')}</span>
+        <div>
+          <div class="pdf-total-amount">${fmtCOP(pdfTotal)}</div>
+          <div class="pdf-total-equiv">${fmtUSD(pdfTotal)}</div>
+          ${esRecurrente?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:#aaa;margin-top:2px;text-decoration:line-through;">${fmtCOP(final)}</div>`:''}
+        </div>
+      </div>
+    </div>
+    <div class="pdf-anticipo">${isEn?'Deposit required to start:':'Anticipo requerido para iniciar:'} <strong>${fmtCOP(anticipo)}</strong> (50%)</div>
+    ${recurrenteHtml}
+    <div class="pdf-validity">${isEn?'Valid until':'Válida hasta'}: ${validStr}</div>
+    <div class="pdf-footer">
+      <div class="pdf-terms">
+        <strong>${isEn?'Terms & Conditions':'Condiciones generales'}</strong><br>
+        ${terminosHtml}
+      </div>
+      <div class="pdf-footer-brand">${myName} · ${myTagline}</div>
+    </div>`;
+
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closePreview(){ document.getElementById('modal-overlay').classList.remove('open'); }
+function handleModalClick(e){ if(e.target===document.getElementById('modal-overlay')) closePreview(); }
+
+function printPDF(){
+  const content=document.getElementById('pdf-content').innerHTML;
+  const win=window.open('','_blank');
+  const customNum=document.getElementById('my-quote-num')?.value;
+  const displayNum = customNum ? customNum : quoteNum;
+  win.document.write(`<!DOCTYPE html><html><head>
+    <meta charset="UTF-8"><title>Cotización — #${displayNum}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:#fff;font-family:'DM Sans',sans-serif;font-weight:300;}
+    .pdf-doc{padding:48px;color:#1a1a1a;line-height:1.5;}
+    .pdf-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1a1a1a;padding-bottom:22px;margin-bottom:26px;}
+    .pdf-logo-img{max-width:100px;max-height:50px;object-fit:contain;}
+    .pdf-my-name{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;}
+    .pdf-my-tagline{font-size:11px;color:#666;letter-spacing:.05em;}
+    .pdf-my-contact{font-family:'DM Mono',monospace;font-size:10px;color:#666;margin-top:4px;line-height:1.6;}
+    .pdf-meta{text-align:right;}
+    .pdf-quote-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:#999;margin-bottom:4px;}
+    .pdf-quote-num{font-family:'Playfair Display',serif;font-size:22px;color:#c9a84c;}
+    .pdf-date{font-family:'DM Mono',monospace;font-size:10px;color:#999;margin-top:4px;}
+    .pdf-client-section{background:#f7f5f0;border-left:3px solid #c9a84c;padding:14px 18px;margin-bottom:26px;border-radius:0 2px 2px 0;}
+    .pdf-client-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:#999;margin-bottom:6px;}
+    .pdf-client-name{font-size:16px;font-weight:500;}
+    .pdf-client-detail{font-size:12px;color:#555;margin-top:2px;}
+    .pdf-client-notes{font-size:12px;color:#555;margin-top:8px;font-style:italic;border-top:1px solid #e0ddd6;padding-top:8px;}
+    .pdf-services-title{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:#999;margin-bottom:10px;}
+    .pdf-service-row{display:flex;justify-content:space-between;align-items:flex-start;padding:12px 0;border-bottom:1px solid #eee;gap:12px;}
+    .pdf-service-info{flex:1;}
+    .pdf-service-name{font-size:13px;font-weight:500;}
+    .pdf-service-detail{font-size:11px;color:#888;margin-top:2px;}
+    .pdf-service-includes span{display:inline-block;font-size:9px;color:#aaa;background:#f5f4f0;border-radius:2px;padding:1px 6px;margin:2px 2px 0 0;}
+    .pdf-service-addons{font-size:10px;color:#aaa;margin-top:3px;}
+    .pdf-service-price{font-family:'DM Mono',monospace;font-size:13px;text-align:right;white-space:nowrap;}
+    .pdf-totals{margin-top:18px;display:flex;flex-direction:column;align-items:flex-end;gap:5px;}
+    .pdf-subtotal-row{display:flex;gap:24px;font-size:12px;color:#666;}
+    .pdf-discount-row{display:flex;gap:24px;font-size:12px;color:#c9a84c;}
+    .pdf-total-row{display:flex;gap:24px;align-items:center;padding-top:12px;border-top:2px solid #1a1a1a;margin-top:6px;}
+    .pdf-total-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#666;}
+    .pdf-total-amount{font-family:'Playfair Display',serif;font-size:26px;color:#c9a84c;}
+    .pdf-total-equiv{font-family:'DM Mono',monospace;font-size:10px;color:#aaa;}
+    .pdf-anticipo{display:inline-block;background:#fff8ec;border:1px solid #f0d888;border-radius:2px;padding:8px 14px;font-size:11px;color:#997700;margin-top:10px;}
+    .pdf-validity{display:inline-block;background:#f7f5f0;border:1px solid #e0ddd6;border-radius:2px;padding:7px 13px;font-family:'DM Mono',monospace;font-size:10px;color:#888;margin-top:10px;}
+    .pdf-footer{margin-top:32px;padding-top:18px;border-top:1px solid #eee;}
+    .pdf-terms{font-size:10px;color:#aaa;line-height:1.8;}
+    .pdf-terms strong{color:#666;}
+    .pdf-footer-brand{margin-top:18px;text-align:center;font-family:'DM Mono',monospace;font-size:9px;color:#ccc;letter-spacing:.2em;}
+    @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
+    </style>
+  </head><body><div class="pdf-doc">${content}</div></body></html>`);
+  win.document.close();
+  setTimeout(()=>{ win.focus(); win.print(); },800);
+}
+
+/* ── EDICIÓN DE VIDEOS ── */
+let edicionMode      = 'reel';
+let edicionVideos    = 1;
+let edicionPrecioUnit = 120000;
+let edicionDurLabel   = '15s';
+let edicionItems      = [];
+
+function setEdicionMode(mode){
+  edicionMode = mode;
+  ['reel','youtube','cine'].forEach(m=>{
+    const btn   = document.getElementById('ed-mode-'+m);
+    const panel = document.getElementById('ed-panel-'+m);
+    if(btn){ btn.style.background = m===mode?'var(--accent)':'transparent'; btn.style.color = m===mode?'var(--bg)':'var(--text-muted)'; }
+    if(panel) panel.style.display = m===mode?'block':'none';
+  });
+  const firstPill = document.querySelector(`#ed-panel-${mode} .pack-pill`);
+  if(firstPill){
+    document.querySelectorAll(`#ed-panel-${mode} .pack-pill`).forEach(p=>p.classList.remove('selected'));
+    firstPill.classList.add('selected');
+    edicionPrecioUnit = parseInt(firstPill.querySelector('.pack-pill-price')?.dataset?.cop||120000);
+    edicionDurLabel   = firstPill.querySelector('.pack-pill-name')?.textContent||'';
+  }
+  updateEdPreview();
+}
+
+function selectEdDuracion(mode, el, precio){
+  document.querySelectorAll(`#ed-${mode}-duracion .pack-pill`).forEach(p=>p.classList.remove('selected'));
+  el.classList.add('selected');
+  edicionPrecioUnit = precio;
+  edicionDurLabel   = el.querySelector('.pack-pill-name')?.textContent||'';
+  updateEdPreview();
+}
+
+function changeEdVideos(delta){
+  edicionVideos = Math.max(1, edicionVideos + delta);
+  updateEdPreview();
+}
+
+function updateEdPreview(){
+  const modeLabel = {reel:'Reel/TikTok', youtube:'YouTube', cine:'Cinemático'}[edicionMode];
+  const subtotal  = edicionVideos * edicionPrecioUnit;
+  const el = document.getElementById('ed-item-preview');
+  if(el) el.textContent = `${edicionVideos} × ${modeLabel} ${edicionDurLabel} = ${fmt(subtotal)}`;
+  const numEl = document.getElementById('ed-videos-num');
+  if(numEl) numEl.textContent = edicionVideos;
+}
+
+function addEdicionItem(){
+  const modeLabel = {reel:'Reel/TikTok', youtube:'YouTube', cine:'Cinemático'}[edicionMode];
+  const label = `${modeLabel} ${edicionDurLabel}`;
+  const existing = edicionItems.findIndex(i=>i.label===label);
+  if(existing>=0){
+    edicionItems[existing].qty += edicionVideos;
+    edicionItems[existing].subtotal = edicionItems[existing].qty * edicionItems[existing].precioUnit;
+  } else {
+    edicionItems.push({label, qty:edicionVideos, precioUnit:edicionPrecioUnit, subtotal:edicionVideos*edicionPrecioUnit});
+  }
+  edicionVideos = 1;
+  updateEdPreview();
+  renderEdItems();
+}
+
+function removeEdItem(i){ edicionItems.splice(i,1); renderEdItems(); }
+
+function changeEdItemQty(i, delta){
+  if(!edicionItems[i]) return;
+  edicionItems[i].qty = Math.max(1, edicionItems[i].qty + delta);
+  edicionItems[i].subtotal = edicionItems[i].qty * edicionItems[i].precioUnit;
+  renderEdItems();
+}
+
+function renderEdItems(){
+  const wrap = document.getElementById('ed-items-wrap');
+  const list = document.getElementById('ed-items-list');
+  if(!list) return;
+  if(edicionItems.length===0){ if(wrap) wrap.style.display='none'; list.innerHTML=''; updateEdTotal(); return; }
+  if(wrap) wrap.style.display='block';
+  list.innerHTML = edicionItems.map((item,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:8px 10px;">
+      <span style="flex:1;font-size:12px;color:var(--text);">${item.label}</span>
+      <button class="qty-btn" style="width:22px;height:22px;font-size:13px;" onclick="event.stopPropagation();changeEdItemQty(${i},-1)">−</button>
+      <span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--text);min-width:16px;text-align:center;">${item.qty}</span>
+      <button class="qty-btn" style="width:22px;height:22px;font-size:13px;" onclick="event.stopPropagation();changeEdItemQty(${i},1)">+</button>
+      <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);min-width:80px;text-align:right;">${fmt(item.subtotal)}</span>
+      <button onclick="event.stopPropagation();removeEdItem(${i})" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:15px;padding:0 2px;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-dim)'">×</button>
+    </div>`).join('');
+  updateEdTotal();
+}
+
+function updateEdTotal(){
+  const totalUnits = edicionItems.reduce((s,i)=>s+i.qty, 0);
+  const rawTotal   = edicionItems.reduce((s,i)=>s+i.subtotal, 0);
+  const desc       = totalUnits>=10?25 : totalUnits>=6?15 : totalUnits>=3?10 : 0;
+  const total      = Math.round(rawTotal*(1-desc/100));
+  packValues['edicion'] = total;
+  const labelEl = document.getElementById('ed-subtotal-label');
+  const dispEl  = document.getElementById('ed-subtotal-display');
+  const descEl  = document.getElementById('ed-descuento-label');
+  if(edicionItems.length===0){
+    if(labelEl) labelEl.textContent = 'Agrega ítems con el botón + Agregar';
+    if(dispEl)  dispEl.textContent  = '$0';
+    if(descEl)  descEl.textContent  = '';
+  } else {
+    const types = [...new Set(edicionItems.map(i=>i.label))].join(' + ');
+    if(labelEl) labelEl.textContent = `${totalUnits} video${totalUnits>1?'s':''} · ${types}`;
+    if(dispEl)  dispEl.textContent  = fmt(total);
+    if(descEl)  descEl.textContent  = desc>0 ? `Descuento por volumen −${desc}% · ${fmt(rawTotal)} → ${fmt(total)}` : '';
+  }
+  updateAll();
+}
+
+/* ── FOTOGRAFÍA LIBRE ── */
+const PRECIO_HORA_SESION = 200000;
+const PRECIO_FOTO_BASICA = 28000;
+const PRECIO_FOTO_AVANZADA = 70000;
+let fotolHoras = 2;
+let fotolFotos = 10;
+let fotolTipo  = 'básica';
+
+function changeFotolParam(param, delta){
+  if(param==='horas') fotolHoras = Math.max(1, fotolHoras + delta);
+  if(param==='fotos') fotolFotos = Math.max(5, fotolFotos + delta);
+  calcFotol();
+}
+
+function setFotolTipo(tipo){
+  fotolTipo = tipo;
+  const btnB = document.getElementById('fotol-tipo-basica');
+  const btnA = document.getElementById('fotol-tipo-avanzada');
+  const nota = document.getElementById('fotol-tipo-nota');
+  if(btnB){ btnB.style.background = tipo==='basica'?'var(--accent)':'transparent'; btnB.style.color = tipo==='basica'?'var(--bg)':'var(--text-muted)'; }
+  if(btnA){ btnA.style.background = tipo==='avanzada'?'var(--accent)':'transparent'; btnA.style.color = tipo==='avanzada'?'var(--bg)':'var(--text-muted)'; }
+  if(nota) nota.textContent = tipo==='basica'
+    ? '6 min por foto · corrección de color, exposición, contraste'
+    : '15 min por foto · color grading avanzado, estilo cinematográfico';
+  calcFotol();
+}
+
+function calcFotol(){
+  const precioPorFoto = fotolTipo==='avanzada' ? PRECIO_FOTO_AVANZADA : PRECIO_FOTO_BASICA;
+  const costoSesion   = fotolHoras * PRECIO_HORA_SESION;
+  const costoEdicion  = fotolFotos * precioPorFoto;
+  const total         = costoSesion + costoEdicion;
+  const tiempoEdicion = fotolFotos * (fotolTipo==='avanzada' ? 15 : 6);
+
+  packValues['fotol'] = total;
+
+  document.getElementById('fotol-horas-num').textContent  = fotolHoras;
+  document.getElementById('fotol-fotos-num').textContent  = fotolFotos;
+  document.getElementById('fotol-sesion-label').textContent  = `Sesión (${fotolHoras}h × ${fmtCOP(PRECIO_HORA_SESION)})`;
+  document.getElementById('fotol-sesion-val').textContent    = fmtCOP(costoSesion);
+  document.getElementById('fotol-edicion-label').textContent = `Edición (${fotolFotos} fotos × ${fmtCOP(precioPorFoto)})`;
+  document.getElementById('fotol-edicion-val').textContent   = fmtCOP(costoEdicion);
+  document.getElementById('fotol-total-display').textContent = fmtCOP(total);
+
+  const h = Math.floor(tiempoEdicion/60);
+  const m = tiempoEdicion%60;
+  const tiempoStr = h>0 ? `${h}h ${m}min` : `${m} min`;
+  document.getElementById('fotol-tiempo-edicion').textContent =
+    `Tiempo estimado de edición: ${tiempoStr}`;
+
+  updateAll();
+}
+
+/* ── GOOGLE SHEETS INTEGRATION ── */
+// Reemplaza esta URL con tu Web App URL de Google Apps Script
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzLfKmCmIHHU1RdyK9f-11HimC61T0OXRyORKLPikYUcesEAAiDGvkLjD-Hwxq5mToiiA/exec';
+
+async function sendToSheets(data){
+  if(!SHEETS_URL) return; // Si no hay URL configurada, no hace nada
+  try {
+    await fetch(SHEETS_URL, {
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    });
+  } catch(e){ console.log('Sheets sync error:', e); }
+}
+
+/* ── RECURRENCIA ── */
+let esRecurrente = false;
+
+function setRecurrente(val){
+  esRecurrente = val;
+  document.getElementById('rec-btn-no').style.background = !val ? 'var(--accent)' : 'transparent';
+  document.getElementById('rec-btn-no').style.color      = !val ? 'var(--bg)'     : 'var(--text-muted)';
+  document.getElementById('rec-btn-si').style.background = val  ? 'var(--accent)' : 'transparent';
+  document.getElementById('rec-btn-si').style.color      = val  ? 'var(--bg)'     : 'var(--text-muted)';
+  document.getElementById('rec-panel').style.display = val ? 'block' : 'none';
+  if(val) updateRecurrente();
+}
+
+function sugerirDescuento(meses){
+  if(meses >= 12) return 25;
+  if(meses >= 7)  return 18;
+  if(meses >= 4)  return 12;
+  return 8; // 2–3 meses
+}
+
+function updateRecurrente(){
+  const meses = parseInt(document.getElementById('rec-meses').value) || 3;
+  const sugerido = sugerirDescuento(meses);
+
+  // Auto-fill suggested discount if user hasn't manually changed it
+  const descInput = document.getElementById('rec-descuento');
+  if(!descInput.dataset.manual){
+    descInput.value = sugerido;
+  }
+  const desc = parseFloat(descInput.value) || sugerido;
+
+  // Sugerencia label
+  const sug = document.getElementById('rec-sugerencia');
+  sug.textContent = `Sugerencia para ${meses} mes${meses>1?'es':''}: −${sugerido}% · ${desc !== sugerido ? 'ajustado manualmente' : 'aplicando sugerencia'}`;
+
+  // Get current base total
+  const { final } = calcTotals();
+  if(final === 0){ return; }
+
+  const precioMes    = Math.round(final * (1 - desc/100));
+  const totalContrato = precioMes * meses;
+  const ahorro        = (final * meses) - totalContrato;
+
+  document.getElementById('rec-precio-normal').textContent   = fmt(final);
+  document.getElementById('rec-precio-mes').textContent      = fmt(precioMes);
+  document.getElementById('rec-total-label-line').textContent = `Total contrato (${meses} mes${meses>1?'es':''})`;
+  document.getElementById('rec-total-contrato').textContent  = fmt(totalContrato);
+  document.getElementById('rec-ahorro-label').textContent    = `Cliente ahorra ${fmt(ahorro)} vs precio normal`;
+
+  // Update main total label
+  const lbl = document.getElementById('total-label');
+  if(lbl) lbl.textContent = 'Por mes (precio especial)';
+  const totDisplay = document.getElementById('total-display');
+  if(totDisplay) totDisplay.textContent = fmt(precioMes);
+}
+
+/* ── FACTURA CALCULATOR ── */
+function calcFactura(){
+  const neto  = parseFloat(document.getElementById('fac-neto').value)||0;
+  if(!neto){ document.getElementById('fac-result').style.display='none'; return; }
+  const ivaP  = parseFloat(document.getElementById('fac-iva').value)||0;
+  const rteP  = parseFloat(document.getElementById('fac-rte').value)||0;
+  const ricaP = parseFloat(document.getElementById('fac-retica').value)||0;
+
+  // Para que el neto que recibe sea exactamente lo pedido,
+  // debemos grossup: base = neto / (1 - rte% - rica%) 
+  // luego el cliente paga base + iva, y le retienen rte + rica sobre la base
+  const factor = 1 - (rteP/100) - (ricaP/100);
+  const base = factor > 0 ? neto / factor : neto;
+  const ivaVal   = base * (ivaP/100);
+  const rteVal   = base * (rteP/100);
+  const ricaVal  = base * (ricaP/100);
+  const totalCliente = base + ivaVal;
+  const netoReal = totalCliente - rteVal - ricaVal;
+
+  document.getElementById('fac-result').style.display='block';
+  document.getElementById('fac-base').textContent     = fmtCOP(Math.round(base));
+  document.getElementById('fac-iva-val').textContent  = ivaP>0 ? '+'+fmtCOP(Math.round(ivaVal)) : 'No aplica';
+  document.getElementById('fac-rte-val').textContent  = rteP>0 ? '−'+fmtCOP(Math.round(rteVal)) : 'No aplica';
+  document.getElementById('fac-retica-val').textContent = ricaP>0 ? '−'+fmtCOP(Math.round(ricaVal)) : 'No aplica';
+  document.getElementById('fac-total').textContent    = fmtCOP(Math.round(totalCliente));
+  document.getElementById('fac-total-usd').textContent = fmtUSD(Math.round(totalCliente));
+  document.getElementById('fac-neto-real').textContent = fmtCOP(Math.round(netoReal));
+
+  const nota = document.getElementById('fac-nota');
+  if(Math.abs(netoReal-neto)<500){
+    nota.style.background='rgba(90,158,122,.08)'; nota.style.borderColor='rgba(90,158,122,.3)';
+    nota.textContent=`✓ Factura ${fmtCOP(Math.round(totalCliente))} al cliente. Después de que te retengan, recibes exactamente ${fmtCOP(Math.round(netoReal))}.`;
+  } else {
+    nota.style.background='rgba(201,168,76,.06)'; nota.style.borderColor='rgba(201,168,76,.3)';
+    nota.textContent=`Factura ${fmtCOP(Math.round(totalCliente))} al cliente. Recibes neto: ${fmtCOP(Math.round(netoReal))}.`;
+  }
+}
+
+/* ── PDF LANG TOGGLE ── */
+let pdfLang = 'es';
+function togglePDFLang(){
+  pdfLang = pdfLang==='es'?'en':'es';
+  document.getElementById('lang-toggle').textContent = pdfLang==='es'?'🌐 English':'🌐 Español';
+  openPreview();
+}
+
+/* ── PRESENTATION MODE ── */
+function openPresentation(){
+  const content = document.getElementById('pdf-content').innerHTML;
+  const win = window.open('','_blank','width=1200,height=800');
+  win.document.write(`<!DOCTYPE html><html><head>
+    <meta charset="UTF-8"><title>Presentación — Cotización</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:#0a0a08;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:40px;font-family:'DM Sans',sans-serif;}
+    .slide{background:#fff;border-radius:8px;max-width:820px;width:100%;box-shadow:0 40px 120px rgba(0,0,0,.6);overflow:hidden;}
+    .slide-toolbar{background:#1a1a18;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}
+    .slide-logo{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#c9a84c;}
+    .slide-actions{display:flex;gap:10px;}
+    .slide-btn{background:transparent;border:1px solid #3a3a36;border-radius:2px;padding:6px 14px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;color:#7a7a72;cursor:pointer;transition:all .2s;}
+    .slide-btn:hover{border-color:#c9a84c;color:#c9a84c;}
+    .slide-btn.primary{background:#c9a84c;border-color:#c9a84c;color:#0a0a08;}
+    .pdf-doc{padding:48px;color:#1a1a1a;line-height:1.5;}
+    .pdf-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1a1a1a;padding-bottom:22px;margin-bottom:26px;}
+    .pdf-logo-img{max-width:100px;max-height:50px;object-fit:contain;}
+    .pdf-my-name{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;}
+    .pdf-my-tagline{font-size:11px;color:#666;}
+    .pdf-my-contact{font-family:'DM Mono',monospace;font-size:10px;color:#666;margin-top:4px;line-height:1.6;}
+    .pdf-meta{text-align:right;}
+    .pdf-quote-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:#999;margin-bottom:4px;}
+    .pdf-quote-num{font-family:'Playfair Display',serif;font-size:22px;color:#c9a84c;}
+    .pdf-date{font-family:'DM Mono',monospace;font-size:10px;color:#999;margin-top:4px;}
+    .pdf-client-section{background:#f7f5f0;border-left:3px solid #c9a84c;padding:14px 18px;margin-bottom:26px;border-radius:0 2px 2px 0;}
+    .pdf-client-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:#999;margin-bottom:6px;}
+    .pdf-client-name{font-size:16px;font-weight:500;}
+    .pdf-client-detail{font-size:12px;color:#555;margin-top:2px;}
+    .pdf-client-notes{font-size:12px;color:#555;margin-top:8px;font-style:italic;border-top:1px solid #e0ddd6;padding-top:8px;}
+    .pdf-services-title{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:#999;margin-bottom:10px;}
+    .pdf-service-row{display:flex;justify-content:space-between;align-items:flex-start;padding:12px 0;border-bottom:1px solid #eee;gap:12px;}
+    .pdf-service-info{flex:1;}
+    .pdf-service-name{font-size:13px;font-weight:500;}
+    .pdf-service-detail{font-size:11px;color:#888;margin-top:2px;}
+    .pdf-service-includes span{display:inline-block;font-size:9px;color:#aaa;background:#f5f4f0;border-radius:2px;padding:1px 6px;margin:2px 2px 0 0;}
+    .pdf-service-addons{font-size:10px;color:#aaa;margin-top:3px;}
+    .pdf-service-price{font-family:'DM Mono',monospace;font-size:13px;text-align:right;white-space:nowrap;}
+    .pdf-totals{margin-top:18px;display:flex;flex-direction:column;align-items:flex-end;gap:5px;}
+    .pdf-subtotal-row{display:flex;gap:24px;font-size:12px;color:#666;}
+    .pdf-discount-row{display:flex;gap:24px;font-size:12px;color:#c9a84c;}
+    .pdf-total-row{display:flex;gap:24px;align-items:center;padding-top:12px;border-top:2px solid #1a1a1a;margin-top:6px;}
+    .pdf-total-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#666;}
+    .pdf-total-amount{font-family:'Playfair Display',serif;font-size:32px;color:#c9a84c;}
+    .pdf-total-equiv{font-family:'DM Mono',monospace;font-size:10px;color:#aaa;}
+    .pdf-anticipo{display:inline-block;background:#fff8ec;border:1px solid #f0d888;border-radius:2px;padding:8px 14px;font-size:11px;color:#997700;margin-top:10px;}
+    .pdf-validity{display:inline-block;background:#f7f5f0;border:1px solid #e0ddd6;border-radius:2px;padding:7px 13px;font-family:'DM Mono',monospace;font-size:10px;color:#888;margin-top:10px;}
+    .pdf-footer{margin-top:32px;padding-top:18px;border-top:1px solid #eee;}
+    .pdf-terms{font-size:10px;color:#aaa;line-height:1.8;}
+    .pdf-terms strong{color:#666;}
+    .pdf-footer-brand{margin-top:18px;text-align:center;font-family:'DM Mono',monospace;font-size:9px;color:#ccc;letter-spacing:.2em;}
+    </style>
+  </head><body>
+    <div class="slide">
+      <div class="slide-toolbar">
+        <div class="slide-logo">Cotización Audiovisual</div>
+        <div class="slide-actions">
+          <button class="slide-btn" onclick="window.print()">⬇ Imprimir</button>
+          <button class="slide-btn primary" onclick="window.close()">Cerrar</button>
+        </div>
+      </div>
+      <div class="pdf-doc">${content}</div>
+    </div>
+  </body></html>`);
+  win.document.close();
+}
+
+/* ── HISTORIAL ── */
+let quoteHistory = JSON.parse(localStorage.getItem('quoteHistory')||'[]');
+
+function saveCurrentQuote(){
+  const {ids,final,pct} = calcTotals();
+  if(ids.length===0){ alert('Selecciona al menos un servicio antes de guardar.'); return; }
+  const clName    = document.getElementById('cl-name').value||'Cliente sin nombre';
+  const clEmpresa = document.getElementById('cl-empresa').value||'';
+  const clEmail   = document.getElementById('cl-email').value||'';
+  const customNum = document.getElementById('my-quote-num')?.value;
+  const displayNum = customNum ? customNum : quoteNum;
+  const mesesRec  = esRecurrente ? (parseInt(document.getElementById('rec-meses').value)||3) : 0;
+  const descRec   = esRecurrente ? (parseFloat(document.getElementById('rec-descuento').value)||0) : 0;
+  const precioFinal = esRecurrente ? Math.round(final*(1-descRec/100)) : final;
+
+  const entry = {
+    id:        Date.now(),
+    date:      new Date().toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'}),
+    fecha_iso: new Date().toISOString(),
+    client:    clName + (clEmpresa?' — '+clEmpresa:''),
+    email:     clEmail,
+    services:  ids.map(id=>getServiceLabel(id)).join(', '),
+    total:     precioFinal,
+    total_usd: Math.round(precioFinal/getTRM()),
+    discount:  pct,
+    recurrente: esRecurrente ? `Sí · ${mesesRec} meses · −${descRec}%` : 'No',
+    quoteNum:  displayNum,
+  };
+
+  // Guardar en localStorage
+  quoteHistory.unshift(entry);
+  if(quoteHistory.length>30) quoteHistory.pop();
+  localStorage.setItem('quoteHistory', JSON.stringify(quoteHistory));
+
+  // Enviar a Google Sheets
+  sendToSheets({
+    fecha:      entry.date,
+    numero:     entry.quoteNum,
+    cliente:    clName,
+    empresa:    clEmpresa,
+    email:      clEmail,
+    servicios:  entry.services,
+    total_cop:  precioFinal,
+    total_usd:  entry.total_usd,
+    descuento_multi: pct>0?`${pct}%`:'',
+    recurrente: entry.recurrente,
+    notas:      document.getElementById('cl-notas').value||''
+  });
+
+  renderHistory();
+  goStep(5);
+}
+
+function clearHistory(){
+  if(!confirm('¿Eliminar todo el historial?')) return;
+  quoteHistory = [];
+  localStorage.removeItem('quoteHistory');
+  renderHistory();
+}
+
+function deleteHistoryEntry(id){
+  quoteHistory = quoteHistory.filter(e=>e.id!==id);
+  localStorage.setItem('quoteHistory', JSON.stringify(quoteHistory));
+  renderHistory();
+}
+
+function renderHistory(){
+  const list = document.getElementById('history-list');
+  if(!list) return;
+  if(quoteHistory.length===0){
+    list.innerHTML='<div class="tracker-empty">No hay cotizaciones guardadas aún. Genera una cotización en la pestaña Servicios y guárdala aquí.</div>';
+    return;
+  }
+  const totalMes = quoteHistory
+    .filter(e=>{ const d=new Date(e.id); const n=new Date(); return d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear(); })
+    .reduce((s,e)=>s+e.total,0);
+
+  list.innerHTML = `
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:14px 18px;margin-bottom:18px;display:flex;gap:20px;flex-wrap:wrap;">
+      <div class="fin-stat"><span class="fin-stat-label">Cotizaciones guardadas</span><span class="fin-stat-value accent">${quoteHistory.length}</span></div>
+      <div class="fin-stat"><span class="fin-stat-label">Cotizado este mes</span><span class="fin-stat-value green">${fmtCOP(totalMes)}</span></div>
+    </div>
+    ${quoteHistory.map(e=>`
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:16px 18px;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px;">
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px;">${e.client}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">${e.services}</div>
+          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:.1em;">${e.date} · Cot. #${e.quoteNum}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-family:'DM Mono',monospace;font-size:15px;color:var(--accent);">${fmtCOP(e.total)}</div>
+          ${e.discount>0?`<div style="font-size:10px;color:var(--text-dim);">desc. ${e.discount}%</div>`:''}
+          <div style="font-size:10px;color:var(--text-dim);margin-top:2px;">${fmtUSD(e.total)}</div>
+        </div>
+        <button onclick="deleteHistoryEntry(${e.id})" class="tracker-del" style="margin-top:2px;">×</button>
+      </div>`).join('')}`;
+}
+
+// Init
+updateFinance();
+updateAll();
+calcUGCDirecto();
+setFilmMode('jornadas');
+setEdicionMode('reel');
+calcFotol();
+renderEdItems();
+renderPaqEventos();
+renderEntregables();
+renderHistory();
+</script>
+</body>
+</html>
