@@ -290,8 +290,8 @@ textarea{resize:vertical;min-height:78px;line-height:1.5;}
     <div class="finance-inputs">
       <div class="form-group">
         <label class="form-label">Gastos operativos negocio/mes (COP)</label>
-        <input type="number" id="fin-gastos" value="1000000" oninput="updateFinance()">
-        <span style="font-size:10px;color:var(--text-dim);margin-top:3px;">Software, equipos, transporte, seguros</span>
+        <input type="number" id="fin-gastos" value="500000" oninput="updateFinance()">
+        <span style="font-size:10px;color:var(--text-dim);margin-top:3px;">Depreciación equipo + software (~$459.000 calculado)</span>
       </div>
       <div class="form-group">
         <label class="form-label">Ahorro / inversión negocio/mes (COP)</label>
@@ -474,42 +474,95 @@ textarea{resize:vertical;min-height:78px;line-height:1.5;}
   <div class="service-card" id="card-influencer" onclick="toggleService('influencer')">
     <div class="service-header">
       <div class="service-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#0a0a08" stroke-width="1.5" stroke-linecap="round"/></svg></div>
-      <div class="service-info"><div class="service-name">Como Creador / Influencer</div><div class="service-desc">Tú apareces. Incluye derechos de uso de imagen.</div></div>
-      <div class="service-base-price">desde<br><span id="influencer-base-display">$900.000</span></div>
+      <div class="service-info"><div class="service-name">Como Creador / Influencer</div><div class="service-desc">Tú apareces, grabas, editas y publicas. Precio = Producción + Distribución (CPE).</div></div>
+      <div class="service-base-price">calculado<br><span id="influencer-base-display" style="font-size:11px;">por métricas</span></div>
     </div>
     <div class="service-options" onclick="event.stopPropagation()">
-      <div class="option-label" style="margin-top:14px;">Selecciona un paquete</div>
-      <div class="pack-grid" id="influencer-packs">
-        <div class="pack-pill selected" data-value="900000" onclick="selectPack('influencer',this)">
-          <div class="pack-pill-name">Spark</div>
-          <div class="pack-pill-price" data-cop="900000">$900.000</div>
-          <div class="pack-pill-desc">1 Reel / TikTok · uso RRSS 30 días</div>
+
+      <!-- MÉTRICAS DE CUENTA -->
+      <div style="background:var(--surface3);border:1px solid var(--border);border-radius:2px;padding:12px;margin-top:14px;margin-bottom:12px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;">Tus métricas (últimos 28 días)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+          <div class="option-group">
+            <label class="option-label">Seguidores</label>
+            <input type="number" id="inf-seguidores" value="3104" oninput="calcInfluencer()">
+          </div>
+          <div class="option-group">
+            <label class="option-label">Alcance único</label>
+            <input type="number" id="inf-alcance" value="2700" oninput="calcInfluencer()">
+          </div>
+          <div class="option-group">
+            <label class="option-label">Interacciones</label>
+            <input type="number" id="inf-interacciones" value="519" oninput="calcInfluencer()">
+          </div>
         </div>
-        <div class="pack-pill" data-value="2200000" onclick="selectPack('influencer',this)">
-          <div class="pack-pill-name">Boost</div>
-          <div class="pack-pill-price" data-cop="2200000">$2.200.000</div>
-          <div class="pack-pill-desc">3 Reels + 3 fotos · uso RRSS indefinido</div>
-        </div>
-        <div class="pack-pill" data-value="4000000" onclick="selectPack('influencer',this)">
-          <div class="pack-pill-name">Campaña</div>
-          <div class="pack-pill-price" data-cop="4000000">$4.000.000</div>
-          <div class="pack-pill-desc">12+ piezas mensuales · uso RRSS + pauta</div>
+        <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+          <div class="fin-stat"><span class="fin-stat-label">Engagement Rate</span><span class="fin-stat-value accent" id="inf-er">19.2%</span></div>
+          <div class="fin-stat"><span class="fin-stat-label">Nivel ER</span><span class="fin-stat-value green" id="inf-er-nivel">Excepcional</span></div>
+          <div class="fin-stat"><span class="fin-stat-label">Multiplicador</span><span class="fin-stat-value" id="inf-multiplicador">×2.0</span></div>
         </div>
       </div>
-      <div class="includes-list">
-        <div class="option-label" style="margin-top:12px;">Incluye en todos</div>
-        <div class="inc-item"><div class="inc-dot"></div>Brief y propuesta creativa / moodboard</div>
-        <div class="inc-item"><div class="inc-dot"></div>Video editado con color + música licenciada + subtítulos</div>
-        <div class="inc-item"><div class="inc-dot"></div>Formato vertical (9:16) + horizontal (16:9)</div>
-        <div class="inc-item"><div class="inc-dot"></div>2 rondas de revisión · entrega por Google Drive</div>
+
+      <!-- TIPO DE PIEZA -->
+      <div style="margin-bottom:12px;">
+        <div class="option-label" style="margin-bottom:8px;">Tipo de pieza</div>
+        <div class="pack-grid" id="inf-tipo-packs" style="grid-template-columns:repeat(3,1fr);">
+          <div class="pack-pill selected" onclick="event.stopPropagation();selectInfTipo(this,'reel',250000)"  >
+            <div class="pack-pill-name">Reel / TikTok</div>
+            <div class="pack-pill-price" data-cop="250000">$250.000</div>
+            <div class="pack-pill-desc">prod. hasta 60s</div>
+          </div>
+          <div class="pack-pill" onclick="event.stopPropagation();selectInfTipo(this,'foto',80000)">
+            <div class="pack-pill-name">Foto + Caption</div>
+            <div class="pack-pill-price" data-cop="80000">$80.000</div>
+            <div class="pack-pill-desc">retoque + texto</div>
+          </div>
+          <div class="pack-pill" onclick="event.stopPropagation();selectInfTipo(this,'historia',120000)">
+            <div class="pack-pill-name">Historia / Story</div>
+            <div class="pack-pill-price" data-cop="120000">$120.000</div>
+            <div class="pack-pill-desc">secuencia 3–5 slides</div>
+          </div>
+        </div>
       </div>
+
+      <!-- CANTIDAD DE PIEZAS -->
+      <div style="margin-bottom:12px;">
+        <div class="option-label" style="margin-bottom:8px;">Cantidad de piezas</div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <button class="qty-btn" onclick="event.stopPropagation();changeInfPiezas(-1)">−</button>
+          <span class="qty-num" id="inf-piezas-num">1</span>
+          <button class="qty-btn" onclick="event.stopPropagation();changeInfPiezas(1)">+</button>
+          <span style="font-size:11px;color:var(--text-dim);flex:1;" id="inf-piezas-hint">precio unitario</span>
+        </div>
+      </div>
+
+      <!-- DESGLOSE CPE -->
+      <div style="background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.2);border-radius:2px;padding:12px;margin-bottom:12px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;">Desglose del precio</div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+          <span style="font-size:11px;color:var(--text-muted);" id="inf-prod-label">Producción (1 pieza)</span>
+          <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text);" id="inf-prod-val">$250.000</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+          <span style="font-size:11px;color:var(--text-muted);" id="inf-dist-label">Distribución (CPE × interacciones esperadas)</span>
+          <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--usd);" id="inf-dist-val">$0</span>
+        </div>
+        <div style="height:1px;background:rgba(201,168,76,.2);margin:8px 0;"></div>
+        <div style="display:flex;justify-content:space-between;">
+          <span style="font-size:12px;color:var(--text);font-weight:500;">Total</span>
+          <span style="font-family:'DM Mono',monospace;font-size:17px;color:var(--accent);font-weight:500;" id="inf-total-display">$0</span>
+        </div>
+        <div style="font-size:10px;color:var(--text-dim);margin-top:4px;" id="inf-cpe-nota"></div>
+      </div>
+
+      <!-- DERECHOS -->
       <div class="addon-list" onclick="event.stopPropagation()">
-        <div class="option-label" style="margin-top:12px;">Adicionales</div>
-        <div class="addon-item" onclick="toggleAddon(this,500000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Derechos para pauta digital (whitelisting)</span><span class="addon-price" data-cop="500000">+$500.000</span></div>
-        <div class="addon-item" onclick="toggleAddon(this,300000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Captions / textos para publicación</span><span class="addon-price" data-cop="300000">+$300.000</span></div>
-        <div class="addon-item" onclick="toggleAddon(this,700000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Derechos medios tradicionales</span><span class="addon-price" data-cop="700000">+$700.000</span></div>
+        <div class="option-label">Derechos adicionales</div>
+        <div class="addon-item" onclick="toggleAddon(this,400000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Pauta digital (whitelisting)</span><span class="addon-price" data-cop="400000">+$400.000</span></div>
+        <div class="addon-item" onclick="toggleAddon(this,600000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Medios tradicionales (TV, OOH)</span><span class="addon-price" data-cop="600000">+$600.000</span></div>
+        <div class="addon-item" onclick="toggleAddon(this,300000)"><div class="addon-check"><div class="addon-dot"></div></div><span class="addon-name">Exclusividad de categoría (30 días)</span><span class="addon-price" data-cop="300000">+$300.000</span></div>
       </div>
-      <div class="service-note">Perfil micro-influencer (3.102 seguidores). Nicho audiovisual Bogotá. Los derechos de uso se especifican por contrato.</div>
+      <div class="service-note">Precio = producción real + valor de tu audiencia calculado por CPE. Actualiza tus métricas cada mes para mantener precios precisos.</div>
     </div>
   </div>
 
@@ -588,103 +641,77 @@ textarea{resize:vertical;min-height:78px;line-height:1.5;}
 
       <!-- MODO DIRECTO -->
       <div id="ugc-panel-directo" style="display:none;margin-top:14px;">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;line-height:1.6;">La marca no compra tu audiencia — compra tu producción. El precio se basa en la complejidad del video.</div>
 
-        <!-- CÁLCULO BASE -->
-        <div style="background:var(--surface3);border:1px solid var(--border);border-radius:2px;padding:12px;margin-bottom:12px;">
-          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;">Parámetros base</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            <div class="option-group">
-              <label class="option-label">Tus seguidores</label>
-              <input type="number" id="ugc-seguidores" value="3104" oninput="calcUGCDirecto()">
+        <!-- TIPO DE VIDEO -->
+        <div style="margin-bottom:12px;">
+          <div class="option-label" style="margin-bottom:8px;">Tipo de video UGC</div>
+          <div class="pack-grid" id="ugc-tipo-packs" style="grid-template-columns:repeat(3,1fr);">
+            <div class="pack-pill selected" onclick="event.stopPropagation();selectUGCTipo(this,'basico',350000)">
+              <div class="pack-pill-name">Básico</div>
+              <div class="pack-pill-price" data-cop="350000">$350.000</div>
+              <div class="pack-pill-desc">Testimonio / unboxing · 30s</div>
             </div>
-            <div class="option-group">
-              <label class="option-label">Tarifa talent base</label>
-              <select id="ugc-tarifa-base" onchange="calcUGCDirecto()">
-                <option value="150">$150 COP × seguidor</option>
-                <option value="200">$200 COP × seguidor</option>
-                <option value="250">$250 COP × seguidor</option>
-              </select>
+            <div class="pack-pill" onclick="event.stopPropagation();selectUGCTipo(this,'estandar',550000)">
+              <div class="pack-pill-name">Estándar</div>
+              <div class="pack-pill-price" data-cop="550000">$550.000</div>
+              <div class="pack-pill-desc">Demo + CTA + edición · 60s</div>
+            </div>
+            <div class="pack-pill" onclick="event.stopPropagation();selectUGCTipo(this,'premium',850000)">
+              <div class="pack-pill-name">Premium</div>
+              <div class="pack-pill-price" data-cop="850000">$850.000</div>
+              <div class="pack-pill-desc">Concepto + locación · 90s</div>
             </div>
           </div>
         </div>
 
-        <!-- BLOQUE PRODUCCIÓN -->
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:12px;margin-bottom:10px;">
-          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;">① Creación del video</div>
-          <div style="font-size:11px;color:var(--text-muted);line-height:1.6;margin-bottom:10px;">Grabación + edición completa. Tú produces y editas — se aplica +50% sobre la tarifa talent.</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
-            <div class="fin-stat"><span class="fin-stat-label">Talent</span><span class="fin-stat-value" id="ugc-precio-base">$465.600</span></div>
-            <div class="fin-stat"><span class="fin-stat-label">Producción (+50%)</span><span class="fin-stat-value" style="color:var(--usd);" id="ugc-precio-prod">$232.800</span></div>
-            <div class="fin-stat"><span class="fin-stat-label">Creación / video</span><span class="fin-stat-value accent" id="ugc-precio-creacion">$698.400</span></div>
-          </div>
+        <!-- CANTIDAD -->
+        <div style="margin-bottom:12px;">
           <div class="option-label" style="margin-bottom:8px;">Número de videos</div>
-          <div class="pack-grid" id="ugc-packs">
-            <div class="pack-pill selected" data-value="1" onclick="selectUGCVideos(this,1)">
-              <div class="pack-pill-name">1 video</div>
-              <div class="pack-pill-price" id="ugc-p1">$698.400</div>
-              <div class="pack-pill-desc">entrega 3 días</div>
-            </div>
-            <div class="pack-pill" data-value="3" onclick="selectUGCVideos(this,3)">
-              <div class="pack-pill-name">3 videos</div>
-              <div class="pack-pill-price" id="ugc-p3">$2.095.200</div>
-              <div class="pack-pill-desc">pack básico</div>
-            </div>
-            <div class="pack-pill" data-value="6" onclick="selectUGCVideos(this,6)">
-              <div class="pack-pill-name">6 videos</div>
-              <div class="pack-pill-price" id="ugc-p6">$4.190.400</div>
-              <div class="pack-pill-desc">retainer · −10%</div>
-            </div>
-          </div>
-          <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--border);">
-            <span style="font-size:12px;color:var(--text-muted);">Subtotal creación</span>
-            <span style="font-family:'DM Mono',monospace;font-size:15px;color:var(--accent);" id="ugc-sub-creacion">$698.400</span>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <button class="qty-btn" onclick="event.stopPropagation();changeUGCDCantidad(-1)">−</button>
+            <span class="qty-num" id="ugcd-cantidad-num">1</span>
+            <button class="qty-btn" onclick="event.stopPropagation();changeUGCDCantidad(1)">+</button>
+            <span style="font-size:11px;color:var(--text-dim);flex:1;" id="ugcd-cantidad-hint">precio unitario</span>
           </div>
         </div>
 
-        <!-- BLOQUE DERECHOS - TOGGLE -->
+        <!-- DERECHOS TOGGLE -->
         <div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:12px;margin-bottom:10px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
             <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);">② Derechos de pauta</div>
             <div style="display:flex;background:var(--surface3);border:1px solid var(--border);border-radius:3px;overflow:hidden;">
-              <button id="ugc-der-no" onclick="event.stopPropagation();setUGCDerechos(false)"
-                style="padding:4px 10px;font-family:'DM Mono',monospace;font-size:9px;border:none;background:var(--accent);color:var(--bg);cursor:pointer;transition:all .2s;">NO</button>
-              <button id="ugc-der-si" onclick="event.stopPropagation();setUGCDerechos(true)"
-                style="padding:4px 10px;font-family:'DM Mono',monospace;font-size:9px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;transition:all .2s;">SÍ</button>
+              <button id="ugc-der-no" onclick="event.stopPropagation();setUGCDerechos(false)" style="padding:4px 10px;font-family:'DM Mono',monospace;font-size:9px;border:none;background:var(--accent);color:var(--bg);cursor:pointer;transition:all .2s;">NO</button>
+              <button id="ugc-der-si" onclick="event.stopPropagation();setUGCDerechos(true)" style="padding:4px 10px;font-family:'DM Mono',monospace;font-size:9px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;transition:all .2s;">SÍ</button>
             </div>
           </div>
-          <div style="font-size:11px;color:var(--text-dim);font-style:italic;margin-bottom:8px;">Licencia para usar el video en pauta digital pagada. Se cobra por separado de la producción.</div>
-
-          <!-- Panel derechos cuando está activo -->
+          <div style="font-size:11px;color:var(--text-dim);font-style:italic;margin-bottom:8px;">Licencia para usar el video en pauta digital pagada.</div>
           <div id="ugc-derechos-panel" style="display:none;">
-            <div class="option-group" style="margin-bottom:10px;">
-              <label class="option-label">Tipo de licencia de pauta</label>
+            <div class="option-group">
+              <label class="option-label">Tipo de licencia</label>
               <select id="ugc-licencia-tipo" onchange="calcUGCDirecto()">
-                <option value="100">Pauta básica (×100 COP × seguidor)</option>
-                <option value="200">Pauta intensiva (×200 COP × seguidor)</option>
-                <option value="300">Whitelisting (×300 COP × seguidor)</option>
+                <option value="basica">Pauta básica · +40% del precio base</option>
+                <option value="intensiva">Pauta intensiva · +70% del precio base</option>
+                <option value="whitelisting">Whitelisting · +100% del precio base</option>
               </select>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
-              <div class="fin-stat"><span class="fin-stat-label">Derechos / video</span><span class="fin-stat-value" style="color:var(--usd);" id="ugc-precio-derechos">$310.400</span></div>
-              <div class="fin-stat"><span class="fin-stat-label">Subtotal derechos</span><span class="fin-stat-value" style="color:var(--usd);" id="ugc-sub-derechos">$310.400</span></div>
-            </div>
           </div>
+        </div>
 
-          <!-- Resumen total con/sin derechos -->
-          <div style="background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.2);border-radius:2px;padding:10px;margin-top:8px;">
-            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-              <span style="font-size:11px;color:var(--text-muted);">Creación</span>
-              <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text);" id="ugc-total-creacion-line">$698.400</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:4px;" id="ugc-derechos-line" style="display:none;">
-              <span style="font-size:11px;color:var(--text-muted);">Derechos de pauta</span>
-              <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--usd);" id="ugc-total-derechos-line">$0</span>
-            </div>
-            <div style="height:1px;background:rgba(201,168,76,.2);margin:6px 0;"></div>
-            <div style="display:flex;justify-content:space-between;">
-              <span style="font-size:12px;color:var(--text);font-weight:500;" id="ugc-total-label">Total UGC</span>
-              <span style="font-family:'DM Mono',monospace;font-size:16px;color:var(--accent);font-weight:500;" id="ugc-precio-total">$698.400</span>
-            </div>
+        <!-- RESUMEN -->
+        <div style="background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.2);border-radius:2px;padding:12px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:11px;color:var(--text-muted);" id="ugc-total-creacion-label">Producción</span>
+            <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text);" id="ugc-total-creacion-line">$350.000</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;" id="ugc-derechos-line" style="display:none;">
+            <span style="font-size:11px;color:var(--text-muted);">Derechos de pauta</span>
+            <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--usd);" id="ugc-total-derechos-line">$0</span>
+          </div>
+          <div style="height:1px;background:rgba(201,168,76,.2);margin:6px 0;"></div>
+          <div style="display:flex;justify-content:space-between;">
+            <span style="font-size:12px;color:var(--text);font-weight:500;" id="ugc-total-label">Total UGC</span>
+            <span style="font-family:'DM Mono',monospace;font-size:16px;color:var(--accent);font-weight:500;" id="ugc-precio-total">$350.000</span>
           </div>
         </div>
       </div>
@@ -1704,7 +1731,118 @@ function setUGCMode(mode){
   updateAll();
 }
 
-let ugcDerechos = false;
+/* ── INFLUENCER CPE ── */
+const CPE_BASE = 1000; // $1.000 por interacción esperada
+let infTipoProd   = 250000;
+let infTipoNombre = 'Reel/TikTok';
+let infPiezas     = 1;
+
+function selectInfTipo(el, nombre, prod){
+  document.querySelectorAll('#inf-tipo-packs .pack-pill').forEach(p=>p.classList.remove('selected'));
+  el.classList.add('selected');
+  infTipoProd   = prod;
+  infTipoNombre = nombre;
+  calcInfluencer();
+}
+
+function changeInfPiezas(delta){
+  infPiezas = Math.max(1, infPiezas + delta);
+  calcInfluencer();
+}
+
+function calcInfluencer(){
+  const seg    = parseInt(document.getElementById('inf-seguidores')?.value)||3104;
+  const alc    = parseInt(document.getElementById('inf-alcance')?.value)||2700;
+  const inter  = parseInt(document.getElementById('inf-interacciones')?.value)||519;
+
+  // ER y multiplicador
+  const er = alc > 0 ? (inter/alc*100) : 0;
+  const mult = er >= 15 ? 2.0 : er >= 10 ? 1.5 : er >= 5 ? 1.0 : 0.7;
+  const nivel = er >= 15 ? 'Excepcional' : er >= 10 ? 'Alto' : er >= 5 ? 'Bueno' : 'Bajo';
+
+  const setEl = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+  setEl('inf-er', er.toFixed(1)+'%');
+  setEl('inf-er-nivel', nivel);
+  setEl('inf-multiplicador', '×'+mult.toFixed(1));
+
+  // Distribución CPE
+  const interEsperadas = Math.round(alc * (er/100));
+  const distribucion   = Math.round(interEsperadas * CPE_BASE * mult);
+
+  // Total por pieza
+  const totalPorPieza = infTipoProd + distribucion;
+
+  // Descuento por cantidad
+  const desc = infPiezas>=6?15 : infPiezas>=3?10 : 0;
+  const totalFinal = Math.round(totalPorPieza * infPiezas * (1-desc/100));
+
+  packValues['influencer'] = totalFinal;
+
+  setEl('inf-prod-label', `Producción (${infPiezas} × ${infTipoNombre})`);
+  setEl('inf-prod-val', fmtCOP(infTipoProd * infPiezas));
+  setEl('inf-dist-label', `Distribución · ${interEsperadas} interacciones esperadas × CPE $${CPE_BASE.toLocaleString()} × ×${mult.toFixed(1)}`);
+  setEl('inf-dist-val', fmtCOP(distribucion * infPiezas));
+  setEl('inf-total-display', fmtCOP(totalFinal));
+
+  const hintEl = document.getElementById('inf-piezas-hint');
+  if(hintEl) hintEl.textContent = infPiezas>=3 ? `−${desc}% por volumen aplicado` : 'precio unitario';
+
+  setEl('inf-cpe-nota', `${fmtCOP(totalPorPieza)} por pieza · ER ${er.toFixed(1)}% es ${nivel.toLowerCase()} para tu segmento`);
+
+  updateAll();
+}
+
+/* ── UGC DIRECTO POR COMPLEJIDAD ── */
+let ugcDerechos    = false;
+let ugcdTipoPrecio = 350000;
+let ugcdTipoNombre = 'Básico';
+let ugcdCantidad   = 1;
+
+function selectUGCTipo(el, nombre, precio){
+  document.querySelectorAll('#ugc-tipo-packs .pack-pill').forEach(p=>p.classList.remove('selected'));
+  el.classList.add('selected');
+  ugcdTipoPrecio = precio;
+  ugcdTipoNombre = nombre;
+  calcUGCDirecto();
+}
+
+function changeUGCDCantidad(delta){
+  ugcdCantidad = Math.max(1, ugcdCantidad + delta);
+  calcUGCDirecto();
+}
+
+function calcUGCDirecto(){
+  // Descuento por volumen
+  const desc = ugcdCantidad>=6?15 : ugcdCantidad>=3?10 : 0;
+  const totalProd = Math.round(ugcdTipoPrecio * ugcdCantidad * (1-desc/100));
+
+  // Derechos si están activos
+  let derechosMult = 0;
+  if(ugcDerechos){
+    const licTipo = document.getElementById('ugc-licencia-tipo')?.value||'basica';
+    derechosMult = licTipo==='whitelisting'?1.0 : licTipo==='intensiva'?0.7 : 0.4;
+  }
+  const totalDerechos = ugcDerechos ? Math.round(totalProd * derechosMult) : 0;
+  const total = totalProd + totalDerechos;
+
+  packValues['ugc'] = total;
+
+  const setEl = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+  const hintEl = document.getElementById('ugcd-cantidad-hint');
+  if(hintEl) hintEl.textContent = desc>0 ? `−${desc}% por volumen aplicado` : 'precio unitario';
+
+  setEl('ugcd-cantidad-num', ugcdCantidad);
+  setEl('ugc-total-creacion-label', `Producción · ${ugcdCantidad} video${ugcdCantidad>1?'s':''} ${ugcdTipoNombre}${desc>0?' (−'+desc+'%)':''}`);
+  setEl('ugc-total-creacion-line', fmtCOP(totalProd));
+  setEl('ugc-total-derechos-line', fmtCOP(totalDerechos));
+
+  const lineEl = document.getElementById('ugc-derechos-line');
+  if(lineEl) lineEl.style.display = ugcDerechos ? 'flex' : 'none';
+
+  setEl('ugc-total-label', ugcDerechos ? 'Total producción + derechos' : 'Total UGC');
+  setEl('ugc-precio-total', fmtCOP(total));
+  updateAll();
+}
 
 function setUGCDerechos(val){
   ugcDerechos = val;
@@ -1719,77 +1857,23 @@ function setUGCDerechos(val){
   calcUGCDirecto();
 }
 
-function calcUGCDirecto(){
-  const seg      = parseInt(document.getElementById('ugc-seguidores').value)||3104;
-  const tarifaBase = parseInt(document.getElementById('ugc-tarifa-base')?.value||150);
-  const base     = seg * tarifaBase;
-  const prod     = Math.round(base * 0.5);
-  const creacion = base + prod;
-
-  // Derechos de pauta (solo si está activo)
-  const licEl    = document.getElementById('ugc-licencia-tipo');
-  const tarifaDer = licEl ? parseInt(licEl.value)||100 : 100;
-  const derechosPorVideo = ugcDerechos ? seg * tarifaDer : 0;
-
-  // Update displays
-  const setEl = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=fmtCOP(val); };
-  setEl('ugc-precio-base', base);
-  setEl('ugc-precio-prod', prod);
-  setEl('ugc-precio-creacion', creacion);
-  setEl('ugc-precio-derechos', derechosPorVideo);
-
-  // Pills — creación sola
-  setEl('ugc-p1', creacion);
-  setEl('ugc-p3', creacion*3);
-  setEl('ugc-p6', Math.round(creacion*6*0.9));
-
-  // Totals based on selected videos
-  const totalCreacion = creacion * ugcVideos;
-  const retainerDisc = ugcVideos===6 ? 0.9 : 1;
-  const totalCreacionFinal = Math.round(creacion * ugcVideos * retainerDisc);
-  const totalDerechos = derechosPorVideo * ugcVideos;
-  const total = totalCreacionFinal + totalDerechos;
-
-  setEl('ugc-sub-creacion', totalCreacionFinal);
-  setEl('ugc-sub-derechos', totalDerechos);
-  setEl('ugc-total-creacion-line', totalCreacionFinal);
-  setEl('ugc-total-derechos-line', totalDerechos);
-  setEl('ugc-precio-total', total);
-
-  // Label
-  const lblEl = document.getElementById('ugc-total-label');
-  if(lblEl) lblEl.textContent = ugcDerechos ? 'Total creación + derechos' : 'Total creación';
-
-  packValues['ugc'] = total;
-  updateAll();
-}
-
-function selectUGCVideos(el, qty){
-  event.stopPropagation();
-  ugcVideos = qty;
-  document.querySelectorAll('#ugc-packs .pack-pill').forEach(p=>p.classList.remove('selected'));
-  el.classList.add('selected');
-  calcUGCDirecto();
-}
-
+/* ── EXTRAS ── */
 function updateUGCAgencia(){
-  const val = parseInt(document.getElementById('ugc-agencia-precio').value)||0;
+  const val = parseInt(document.getElementById('ugc-agencia-precio')?.value)||0;
   packValues['ugc'] = val;
   const vEl = document.getElementById('ugc-agencia-viability');
   if(val>0 && vEl){
     vEl.style.display='block';
     if(val >= 600000){
-      vEl.className='viability-alert good'; vEl.textContent=`✓ Buen precio para UGC. Equivale a ~${Math.round(val/270000*8)} horas de trabajo tuyo.`;
+      vEl.className='viability-alert good'; vEl.textContent=`✓ Buen precio. Equivale a ~${Math.round(val/280000)}h de trabajo.`;
     } else if(val >= 350000){
-      vEl.className='viability-alert neutral'; vEl.textContent=`Precio bajo pero aceptable si el proyecto es rápido (menos de 1 día de trabajo).`;
+      vEl.className='viability-alert neutral'; vEl.textContent=`Precio bajo pero aceptable si es menos de 1 día de trabajo.`;
     } else {
-      vEl.className='viability-alert warn'; vEl.textContent=`⚠ Precio muy bajo. Con tu costo de día real, no te compensa a menos que sea menos de 2 horas de trabajo.`;
+      vEl.className='viability-alert warn'; vEl.textContent=`⚠ Precio muy bajo para tu tarifa real.`;
     }
   } else if(vEl){ vEl.style.display='none'; }
   updateAll();
 }
-
-/* ── EXTRAS ── */
 function addExtraEntry(){
   const name = prompt('¿De dónde viene este ingreso?');
   if(!name) return;
@@ -2687,6 +2771,7 @@ function renderHistory(){
 // Init
 updateFinance();
 updateAll();
+calcInfluencer();
 calcUGCDirecto();
 setFilmMode('jornadas');
 setEdicionMode('reel');
