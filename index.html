@@ -933,9 +933,188 @@ textarea{resize:vertical;min-height:78px;line-height:1.5;}
   </div>
 </div>
 
-<!-- 07 FILMMAKING (renumbered) -->
+<!-- 07 CORRECCIÓN DE COLOR -->
 <div class="section">
-  <div class="section-header"><span class="section-num">07</span><span class="section-title">Filmmaking Corporativo / Eventos</span><div class="section-line"></div></div>
+  <div class="section-header"><span class="section-num">07</span><span class="section-title">Corrección y Color Grading</span><div class="section-line"></div></div>
+  <div class="service-card" id="card-color" onclick="toggleService('color')">
+    <div class="service-header">
+      <div class="service-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#0a0a08" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      <div class="service-info"><div class="service-name">Corrección y Color Grading</div><div class="service-desc">DaVinci Resolve Studio · precio por minuto de línea de tiempo finalizada.</div></div>
+      <div class="service-base-price">desde<br><span id="color-base-display">$65.000/min</span></div>
+    </div>
+    <div class="service-options" onclick="event.stopPropagation()">
+
+      <!-- TIPO DE CLIENTE (PRIVADO) -->
+      <div style="background:rgba(201,168,76,.06);border:1px dashed rgba(201,168,76,.4);border-radius:2px;padding:10px 12px;margin-top:14px;margin-bottom:14px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;">🔒 Tipo de cliente — solo tú lo ves</div>
+        <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:2px;overflow:hidden;">
+          <button id="color-cliente-industria" onclick="event.stopPropagation();setColorCliente('industria')"
+            style="flex:1;padding:8px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;border:none;background:var(--accent);color:var(--bg);cursor:pointer;transition:all .2s;">
+            INDUSTRIA / AGENCIA
+          </button>
+          <button id="color-cliente-pequeño" onclick="event.stopPropagation();setColorCliente('pequeño')"
+            style="flex:1;padding:8px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;border:none;background:transparent;color:var(--text-muted);cursor:pointer;transition:all .2s;">
+            MARCA PEQUEÑA
+          </button>
+        </div>
+        <div style="font-size:10px;color:var(--text-dim);margin-top:6px;font-style:italic;" id="color-cliente-nota">Tarifas estándar de industria — no aparece en el PDF.</div>
+      </div>
+
+      <!-- TIPO DE CORRECCIÓN -->
+      <div style="margin-bottom:12px;margin-top:14px;">
+          <div class="option-label" style="margin-bottom:8px;">Tipo de corrección</div>
+          <div class="pack-grid" id="color-tipo-packs" style="grid-template-columns:repeat(3,1fr);">
+            <div class="pack-pill selected" onclick="event.stopPropagation();selectColorTipo(this,'basica')">
+              <div class="pack-pill-name">Básica</div>
+              <div class="pack-pill-price" id="color-tipo-basica-price">$65.000/min</div>
+              <div class="pack-pill-desc">balance, exposición, contraste</div>
+            </div>
+            <div class="pack-pill" onclick="event.stopPropagation();selectColorTipo(this,'creativa')">
+              <div class="pack-pill-name">Creativa</div>
+              <div class="pack-pill-price" id="color-tipo-creativa-price">$110.000/min</div>
+              <div class="pack-pill-desc">look específico, paleta de marca</div>
+            </div>
+            <div class="pack-pill" onclick="event.stopPropagation();selectColorTipo(this,'estilo')">
+              <div class="pack-pill-name">Estilo visual</div>
+              <div class="pack-pill-price" id="color-tipo-estilo-price">$180.000/min</div>
+              <div class="pack-pill-desc">desarrollo de look, capas, tracking</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ÍTEMS DE MATERIAL -->
+        <div style="margin-bottom:12px;">
+          <div class="option-label" style="margin-bottom:6px;">Material a colorizar <span style="font-size:10px;color:var(--text-dim);font-style:italic;font-family:'DM Sans',sans-serif;letter-spacing:0;">(agrega por tipo de pieza)</span></div>
+          <div id="color-items-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
+
+          <!-- Configurador de ítem -->
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:12px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+              <div class="option-group">
+                <label class="option-label">Nombre de la pieza</label>
+                <input type="text" id="color-item-nombre" placeholder="ej. Comercial, Reel, Corto..." style="font-size:12px;">
+              </div>
+              <div class="option-group">
+                <label class="option-label">Duración (minutos)</label>
+                <input type="number" id="color-item-min" placeholder="ej. 2.5" step="0.5" min="0.1" style="font-size:12px;font-family:'DM Mono',monospace;">
+              </div>
+            </div>
+            <button onclick="event.stopPropagation();addColorItem()"
+              style="width:100%;padding:8px;background:var(--accent);border:none;border-radius:2px;color:var(--bg);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;cursor:pointer;">
+              + Agregar pieza
+            </button>
+          </div>
+        </div>
+
+        <!-- VARIABLES ADICIONALES -->
+        <div style="margin-bottom:12px;">
+          <div class="option-label" style="margin-bottom:8px;">Variables del proyecto</div>
+
+          <!-- Tracking / power windows -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;margin-bottom:6px;">
+            <div>
+              <div style="font-size:12px;color:var(--text);">Tracking y capas (power windows)</div>
+              <div style="font-size:10px;color:var(--text-dim);">Trabajo de máscara y seguimiento por objeto</div>
+            </div>
+            <div style="display:flex;background:var(--surface3);border:1px solid var(--border);border-radius:3px;overflow:hidden;flex-shrink:0;">
+              <button id="color-tracking-no" onclick="event.stopPropagation();setColorVar('tracking',false)" style="padding:4px 10px;font-family:'DM Mono',monospace;font-size:9px;border:none;background:var(--accent);color:var(--bg);cursor:pointer;">NO</button>
+              <button id="color-tracking-si" onclick="event.stopPropagation();setColorVar('tracking',true)" style="padding:4px 10px;font-family:'DM Mono',monospace;font-size:9px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;">SÍ</button>
+            </div>
+          </div>
+
+          <!-- Sesión supervisada -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;margin-bottom:6px;">
+            <div>
+              <div style="font-size:12px;color:var(--text);">Sesión supervisada (cliente presente)</div>
+              <div style="font-size:10px;color:var(--text-dim);">El cliente asiste en vivo y toma decisiones en tiempo real</div>
+            </div>
+            <div style="display:flex;background:var(--surface3);border:1px solid var(--border);border-radius:3px;overflow:hidden;flex-shrink:0;">
+              <button id="color-supervision-no" onclick="event.stopPropagation();setColorVar('supervision',false)" style="padding:4px 10px;font-family:'DM Mono',monospace;font-size:9px;border:none;background:var(--accent);color:var(--bg);cursor:pointer;">NO</button>
+              <button id="color-supervision-si" onclick="event.stopPropagation();setColorVar('supervision',true)" style="padding:4px 10px;font-family:'DM Mono',monospace;font-size:9px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;">SÍ</button>
+            </div>
+          </div>
+
+          <!-- Formato de entrega -->
+          <div style="margin-bottom:6px;">
+            <div class="option-label" style="margin-bottom:6px;">Formato de entrega</div>
+            <select id="color-formato" onchange="calcColor()" style="font-size:12px;">
+              <option value="0">Estándar (un formato, resolución acordada)</option>
+              <option value="0.2">Múltiples aspect ratios (horizontal + vertical + cuadrado)</option>
+              <option value="0.35">HDR (entrega en HDR10 o Dolby Vision)</option>
+              <option value="0.5">DCP (para cine / festivales)</option>
+            </select>
+          </div>
+
+          <!-- Turnaround -->
+          <div style="margin-bottom:6px;">
+            <div class="option-label" style="margin-bottom:6px;">Tiempo de entrega</div>
+            <select id="color-turnaround" onchange="calcColor()" style="font-size:12px;">
+              <option value="0">Normal (5–7 días hábiles)</option>
+              <option value="0.25">Rápido (3 días)</option>
+              <option value="0.5">Urgente (24 horas) · +50%</option>
+            </select>
+          </div>
+
+          <!-- Revisiones -->
+          <div>
+            <div class="option-label" style="margin-bottom:6px;">Rondas de revisión incluidas</div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <button class="qty-btn" onclick="event.stopPropagation();changeColorRevisiones(-1)">−</button>
+              <span class="qty-num" id="color-revisiones-num">2</span>
+              <button class="qty-btn" onclick="event.stopPropagation();changeColorRevisiones(1)">+</button>
+              <span style="font-size:11px;color:var(--text-dim);" id="color-revisiones-nota">2 rondas incluidas · estándar</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- DESGLOSE -->
+        <div style="background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.2);border-radius:2px;padding:12px;margin-bottom:12px;">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;">Desglose</div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:11px;color:var(--text-muted);" id="color-base-label">Material base</span>
+            <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text);" id="color-base-val">$0</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;" id="color-tracking-row" style="display:none;">
+            <span style="font-size:11px;color:var(--text-muted);">Tracking y capas (+30%)</span>
+            <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--usd);" id="color-tracking-val">$0</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;" id="color-supervision-row" style="display:none;">
+            <span style="font-size:11px;color:var(--text-muted);">Sesión supervisada (+25%)</span>
+            <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--usd);" id="color-supervision-val">$0</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;" id="color-formato-row" style="display:none;">
+            <span style="font-size:11px;color:var(--text-muted);" id="color-formato-label">Formato especial</span>
+            <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--usd);" id="color-formato-val">$0</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;" id="color-turnaround-row" style="display:none;">
+            <span style="font-size:11px;color:var(--text-muted);" id="color-turnaround-label">Urgencia</span>
+            <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--red);" id="color-turnaround-val">$0</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;" id="color-revisiones-row" style="display:none;">
+            <span style="font-size:11px;color:var(--text-muted);" id="color-revisiones-label">Revisiones extra</span>
+            <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--usd);" id="color-revisiones-val">$0</span>
+          </div>
+          <div style="height:1px;background:rgba(201,168,76,.2);margin:8px 0;"></div>
+          <div style="display:flex;justify-content:space-between;">
+            <span style="font-size:12px;color:var(--text);font-weight:500;" id="color-total-label">Total color grading</span>
+            <span style="font-family:'DM Mono',monospace;font-size:17px;color:var(--accent);font-weight:500;" id="color-total-display">$0</span>
+          </div>
+          <div style="font-size:10px;color:var(--text-dim);margin-top:4px;" id="color-total-nota"></div>
+        </div>
+      <div class="includes-list" style="margin-top:14px;">
+        <div class="option-label">Incluye</div>
+        <div class="inc-item"><div class="inc-dot"></div>DaVinci Resolve Studio · licencia propia</div>
+        <div class="inc-item"><div class="inc-dot"></div>Entrega en formato acordado · Google Drive</div>
+        <div class="inc-item"><div class="inc-dot"></div>Rondas de revisión según lo seleccionado</div>
+      </div>
+      <div class="service-note">El precio nunca incluye el tipo de cliente seleccionado — ese dato es privado y no aparece en el PDF.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 08 FILMMAKING (renumbered) -->
+<div class="section">
+  <div class="section-header"><span class="section-num">08</span><span class="section-title">Filmmaking Corporativo / Eventos</span><div class="section-line"></div></div>
   <div class="service-card" id="card-film" onclick="toggleService('film')">
     <div class="service-header">
       <div class="service-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#0a0a08" stroke-width="1.5" stroke-linecap="round"/></svg></div>
@@ -1448,6 +1627,10 @@ function getPackName(id){
     if(edicionItems.length===0) return 'Sin ítems';
     return edicionItems.map(i=>`${i.qty}× ${i.label}`).join(' + ');
   }
+  if(id==='color'){
+    const modo = colorMode==='retainer' ? 'Retainer mensual' : `${colorItems.reduce((s,i)=>s+i.minutos,0).toFixed(1)} min · ${colorTipo}`;
+    return modo;
+  }
   if(id==='fotol'){
     const nombre = document.getElementById('fotol-nombre')?.value||'Sesión libre';
     return `${nombre} · ${fotolHoras}h sesión · ${fotolFotos} fotos ${fotolTipo}`;
@@ -1471,14 +1654,14 @@ function getServiceAddons(id){
 }
 
 function getActiveIds(){
-  return ['foto','influencer','realizador','ugc','edicion','fotol','film'].filter(id=>{
+  return ['foto','influencer','realizador','ugc','edicion','fotol','color','film'].filter(id=>{
     const c=document.getElementById('card-'+id);
     return c&&c.classList.contains('active');
   });
 }
 
 function getServiceLabel(id){
-  return {foto:'Fotografía Editorial',influencer:'Contenido RRSS (Influencer)',realizador:'Contenido RRSS (Realizador)',ugc:'Contenido UGC',edicion:'Edición de Videos',fotol:'Fotografía — Sesión Libre',film:'Filmmaking / Eventos'}[id]||id;
+  return {foto:'Fotografía Editorial',influencer:'Contenido RRSS (Influencer)',realizador:'Contenido RRSS (Realizador)',ugc:'Contenido UGC',edicion:'Edición de Videos',fotol:'Fotografía — Sesión Libre',color:'Corrección y Color Grading',film:'Filmmaking / Eventos'}[id]||id;
 }
 
 function calcTotals(){
@@ -2050,7 +2233,7 @@ function updateViability(){
 }
 
 function updateAll(){
-  const bases={foto:1200000,influencer:900000,realizador:1600000,ugc:650000,edicion:120000,fotol:680000,film:PRECIO_JORNADA};
+  const bases={foto:1200000,influencer:900000,realizador:1600000,ugc:650000,edicion:120000,fotol:680000,color:65000,film:PRECIO_JORNADA};
   Object.entries(bases).forEach(([id,p])=>{ const el=document.getElementById(id+'-base-display'); if(el) el.textContent=fmt(p); });
   document.querySelectorAll('.addon-price').forEach(el=>{ el.textContent='+'+fmt(parseInt(el.dataset.cop)); });
   // Only update pack-pill prices that aren't inside the film edicion packs (those are static COP labels)
@@ -2430,6 +2613,176 @@ function updateEdTotal(){
   updateAll();
 }
 
+/* ── CORRECCIÓN DE COLOR ── */
+const COLOR_TARIFAS = {
+  industria: { basica: 100000, creativa: 180000, estilo: 300000 },
+  pequeño:   { basica: 65000,  creativa: 110000, estilo: 180000 }
+};
+let colorCliente    = 'industria';
+let colorMode       = 'proyecto';
+let colorTipo       = 'basica';
+let colorItems      = []; // [{nombre, minutos}]
+let colorTracking   = false;
+let colorSupervision = false;
+let colorRevisiones = 2;
+let colorMinimo     = 1500000;
+
+function setColorCliente(tipo){
+  colorCliente = tipo;
+  ['industria','pequeño'].forEach(t=>{
+    const btn = document.getElementById('color-cliente-'+t);
+    if(btn){
+      btn.style.background = t===tipo ? 'var(--accent)' : 'transparent';
+      btn.style.color      = t===tipo ? 'var(--bg)'     : 'var(--text-muted)';
+    }
+  });
+  const nota = document.getElementById('color-cliente-nota');
+  if(nota) nota.textContent = tipo==='industria'
+    ? 'Tarifas estándar de industria — no aparece en el PDF.'
+    : 'Tarifas accesibles para marcas pequeñas — no aparece en el PDF.';
+  updateColorPrices();
+  calcColor();
+}
+
+function selectColorTipo(el, tipo){
+  document.querySelectorAll('#color-tipo-packs .pack-pill').forEach(p=>p.classList.remove('selected'));
+  el.classList.add('selected');
+  colorTipo = tipo;
+  calcColor();
+}
+
+function setColorVar(variable, val){
+  if(variable==='tracking')    colorTracking    = val;
+  if(variable==='supervision') colorSupervision = val;
+  ['si','no'].forEach(v=>{
+    const btn = document.getElementById(`color-${variable}-${v}`);
+    if(btn){
+      const active = v==='si' ? val : !val;
+      btn.style.background = active ? 'var(--accent)' : 'transparent';
+      btn.style.color      = active ? 'var(--bg)'     : 'var(--text-muted)';
+    }
+  });
+  calcColor();
+}
+
+function changeColorRevisiones(delta){
+  colorRevisiones = Math.max(0, colorRevisiones + delta);
+  calcColor();
+}
+
+function changeColorMinimo(delta){
+  colorMinimo = Math.max(500000, colorMinimo + delta);
+  const el = document.getElementById('color-minimo-display');
+  if(el) el.textContent = fmtCOP(colorMinimo);
+  calcColor();
+}
+
+function addColorItem(){
+  const nombre  = document.getElementById('color-item-nombre')?.value?.trim();
+  const minutos = parseFloat(document.getElementById('color-item-min')?.value)||0;
+  if(!nombre || minutos<=0){ alert('Completa el nombre y la duración.'); return; }
+  colorItems.push({nombre, minutos});
+  document.getElementById('color-item-nombre').value = '';
+  document.getElementById('color-item-min').value    = '';
+  renderColorItems();
+}
+
+function removeColorItem(i){
+  colorItems.splice(i,1);
+  renderColorItems();
+}
+
+function renderColorItems(){
+  const list = document.getElementById('color-items-list');
+  if(!list) return;
+  if(colorItems.length===0){ list.innerHTML=''; calcColor(); return; }
+  const tarifa = COLOR_TARIFAS[colorCliente][colorTipo];
+  list.innerHTML = colorItems.map((item,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:8px 10px;">
+      <span style="flex:1;font-size:12px;color:var(--text);">${item.nombre}</span>
+      <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim);">${item.minutos} min</span>
+      <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);">${fmtCOP(Math.round(item.minutos*tarifa))}</span>
+      <button onclick="event.stopPropagation();removeColorItem(${i})" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:15px;padding:0 2px;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-dim)'">×</button>
+    </div>`).join('');
+  calcColor();
+}
+
+function updateColorPrices(){
+  const t = COLOR_TARIFAS[colorCliente];
+  const setEl = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+  setEl('color-tipo-basica-price',   fmtCOP(t.basica)+'/min');
+  setEl('color-tipo-creativa-price', fmtCOP(t.creativa)+'/min');
+  setEl('color-tipo-estilo-price',   fmtCOP(t.estilo)+'/min');
+  setEl('color-base-display', fmtCOP(t.basica)+'/min');
+  setEl('color-ret-tarifa',   fmtCOP(t[colorTipo])+'/min');
+}
+
+function calcColor(){
+  const tarifa  = COLOR_TARIFAS[colorCliente][colorTipo];
+  const totalMin = colorItems.reduce((s,i)=>s+i.minutos, 0);
+  const baseVal  = Math.round(totalMin * tarifa);
+
+  // Variables
+  const trackingVal    = colorTracking    ? Math.round(baseVal*0.30) : 0;
+  const supervisionVal = colorSupervision ? Math.round(baseVal*0.25) : 0;
+
+  const formatoEl  = document.getElementById('color-formato');
+  const turnoEl    = document.getElementById('color-turnaround');
+  const formatoMult = formatoEl  ? parseFloat(formatoEl.value)||0  : 0;
+  const turnoMult   = turnoEl    ? parseFloat(turnoEl.value)||0    : 0;
+
+  const formatoVal  = Math.round(baseVal * formatoMult);
+  const turnoVal    = Math.round(baseVal * turnoMult);
+
+  // Revisiones: 2 incluidas, cada extra +$80k industria / +$50k pequeño
+  const precioRevision = colorCliente==='industria' ? 80000 : 50000;
+  const revisionesExtra = Math.max(0, colorRevisiones - 2);
+  const revisionesVal   = revisionesExtra * precioRevision;
+
+  const total = baseVal + trackingVal + supervisionVal + formatoVal + turnoVal + revisionesVal;
+  packValues['color'] = total || 0;
+
+  // Update desglose
+  const setEl = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+  const showRow = (id, show) => { const e=document.getElementById(id); if(e) e.style.display=show?'flex':'none'; };
+
+  setEl('color-base-label', `${totalMin.toFixed(1)} min × ${fmtCOP(tarifa)}/min`);
+  setEl('color-base-val',   fmtCOP(baseVal));
+
+  showRow('color-tracking-row', colorTracking);
+  setEl('color-tracking-val', fmtCOP(trackingVal));
+
+  showRow('color-supervision-row', colorSupervision);
+  setEl('color-supervision-val', fmtCOP(supervisionVal));
+
+  showRow('color-formato-row', formatoMult>0);
+  const formatoLabels = {'0.2':'Múltiples aspect ratios','0.35':'HDR','0.5':'DCP cine'};
+  setEl('color-formato-label', formatoLabels[String(formatoMult)]||'Formato especial');
+  setEl('color-formato-val',   fmtCOP(formatoVal));
+
+  showRow('color-turnaround-row', turnoMult>0);
+  setEl('color-turnaround-label', turnoMult>=0.5?'Urgente 24h':'Rápido 3 días');
+  setEl('color-turnaround-val',   fmtCOP(turnoVal));
+
+  showRow('color-revisiones-row', revisionesExtra>0);
+  setEl('color-revisiones-label', `${revisionesExtra} ronda${revisionesExtra>1?'s':''} extra`);
+  setEl('color-revisiones-val',   fmtCOP(revisionesVal));
+
+  const revNota = document.getElementById('color-revisiones-nota');
+  if(revNota) revNota.textContent = colorRevisiones<=2
+    ? `${colorRevisiones} rondas incluidas · estándar`
+    : `2 incluidas + ${revisionesExtra} extra (${fmtCOP(revisionesVal)})`;
+
+  setEl('color-total-label',   'Total color grading');
+  setEl('color-total-display', fmtCOP(total));
+  setEl('color-total-nota',    totalMin>0 && colorMode==='proyecto'
+    ? `${totalMin.toFixed(1)} min de material · ${fmtCOP(Math.round(total/totalMin))}/min promedio final`
+    : '');
+
+  updateColorPrices();
+  updateAll();
+}
+
 /* ── FOTOGRAFÍA LIBRE ── */
 const PRECIO_HORA_SESION = 200000;
 const PRECIO_FOTO_BASICA = 28000;
@@ -2773,10 +3126,12 @@ updateFinance();
 updateAll();
 calcInfluencer();
 calcUGCDirecto();
+setColorCliente('industria');
 setFilmMode('jornadas');
 setEdicionMode('reel');
 calcFotol();
 renderEdItems();
+renderColorItems();
 renderPaqEventos();
 renderEntregables();
 renderHistory();
